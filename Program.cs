@@ -1,3 +1,4 @@
+using Base2.Forms;
 using Base2.Helpers;
 
 namespace Base2
@@ -28,7 +29,7 @@ namespace Base2
                 );
                 return;
             }
-            Application.Run(new Form1());
+            Application.Run(new MainForm());
         }
     }
 }

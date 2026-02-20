@@ -28,13 +28,37 @@
         /// </summary>
         private void InitializeComponent()
         {
+            button1 = new Button();
+            bOrderForm = new Button();
             SuspendLayout();
+            // 
+            // button1
+            // 
+            button1.Location = new Point(12, 12);
+            button1.Name = "button1";
+            button1.Size = new Size(75, 23);
+            button1.TabIndex = 0;
+            button1.Text = "button1";
+            button1.UseVisualStyleBackColor = true;
+            button1.Click += button1_Click;
+            // 
+            // bOrderForm
+            // 
+            bOrderForm.Location = new Point(12, 41);
+            bOrderForm.Name = "bOrderForm";
+            bOrderForm.Size = new Size(137, 23);
+            bOrderForm.TabIndex = 1;
+            bOrderForm.Text = "Структура наказу";
+            bOrderForm.UseVisualStyleBackColor = true;
+            bOrderForm.Click += bOrderForm_Click;
             // 
             // Form1
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(800, 450);
+            Controls.Add(bOrderForm);
+            Controls.Add(button1);
             Name = "Form1";
             Text = "Form1";
             Load += Form1_Load;
@@ -42,5 +66,8 @@
         }
 
         #endregion
+
+        private Button button1;
+        private Button bOrderForm;
     }
 }
