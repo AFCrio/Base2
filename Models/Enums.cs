@@ -6,25 +6,19 @@
 public enum NodeType
 {
     // Структурні
-    DocumentRoot,              // Корінь документа (заголовок наказу)
-    SectionHeader,             // Заголовок секції без даних
-    LocationSection,           // Секція з локацією
+    SectionHeader,             // Заголовок секції (корінь нумерації)
+    LocationSection,           // Секція з контекстом локації
 
-    // Прості позиції
-    SimplePosition,            // Особа зі зброєю
-    SimplePositionNoWeapon,    // Особа без зброї
+    // Позиції (HasWeapon/HasVehicle визначаються прапорцями вузла)
+    SimplePosition,            // Одна особа
     DriverPosition,            // Водій з транспортом
 
-    // Групи inline
-    GroupInline,               // Група зі зброєю, в один рядок
-    GroupInlineNoWeapon,       // Група без зброї, в один рядок
-
-    // Групи nested
-    GroupNested,               // Група без зброї, з підпунктами
-    GroupNestedWithWeapon,     // Група зі зброєю, з підпунктами
+    // Групи
+    GroupInline,               // Група, список в рядок
+    GroupNested,               // Група з підпунктами
 
     // Спеціальні
-    TimeRange,                 // Часовий діапазон
+    TimeRange,                 // Часовий діапазон (зміна)
     MedicalPosition,           // Черговий медпункту
 
     // Вогневі групи

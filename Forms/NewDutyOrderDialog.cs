@@ -9,13 +9,15 @@ namespace Base2.Forms
     public partial class NewDutyOrderDialog : Form
     {
         private readonly AppDbContext _context;
+        private int _selectedTemplateId;
         public DutyOrder? CreatedOrder { get; private set; }
 
         public NewDutyOrderDialog(AppDbContext? context = null)
         {
             InitializeComponent();
             _context = context ?? new AppDbContext();
-            LoadLocations(); // Загружаем локации
+            LoadLocations();
+            LoadTemplates();
         }
 
         private void LoadLocations()
@@ -23,6 +25,18 @@ namespace Base2.Forms
             comboBoxLocation.DataSource = _context.Locations.ToList();
             comboBoxLocation.DisplayMember = "LocationName";
             comboBoxLocation.ValueMember = "LocationId";
+        }
+
+        private void LoadTemplates()
+        {
+            var templates = _context.DutyTemplates
+                .Where(t => t.IsActive)
+                .ToList();
+
+            if (templates.Count > 0)
+            {
+                _selectedTemplateId = templates[0].DutyTemplateId;
+            }
         }
 
         private void btnOK_Click(object sender, EventArgs e)
@@ -35,19 +49,20 @@ namespace Base2.Forms
                 OrderDate = DateOnly.FromDateTime(dateTimeOrderDate.Value),
                 StartDateTime = dateTimeStart.Value,
                 EndDateTime = dateTimeEnd.Value,
-                CommanderInfo = textBoxCommander.Text.Trim()
+                CommanderInfo = textBoxCommander.Text.Trim(),
+                SourceTemplateId = _selectedTemplateId
             };
 
             _context.DutyOrders.Add(CreatedOrder);
             _context.SaveChanges();
 
-            // Автоматически добавляем корень документа
+            // Автоматически добавляем кореневий вузол
             var rootNode = new DutySectionNode
             {
                 DutyOrderId = CreatedOrder.DutyOrderId,
-                NodeType = NodeType.DocumentRoot,
+                NodeType = NodeType.SectionHeader,
                 OrderIndex = 0,
-                Title = "Корінь документа"
+                Title = "1"
             };
             _context.DutySectionNodes.Add(rootNode);
             _context.SaveChanges();

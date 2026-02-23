@@ -86,6 +86,34 @@ namespace Base2.Forms
             comboBoxVehicle.Enabled = checkBoxVehicle.Checked;
         }
 
+        /// <summary>
+        /// Попередньо встановити прапорець зброї (з прапорців вузла)
+        /// </summary>
+        public void PresetWeapon(bool enabled)
+        {
+            checkBoxWeapon.Checked = enabled;
+            comboBoxWeapon.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// Попередньо встановити прапорець набоїв (з прапорців вузла)
+        /// </summary>
+        public void PresetAmmo(bool enabled)
+        {
+            checkBoxAmmo.Checked = enabled;
+            numericAmmoCount.Enabled = enabled;
+            textBoxAmmoType.Enabled = enabled;
+        }
+
+        /// <summary>
+        /// Попередньо встановити прапорець транспорту (з прапорців вузла)
+        /// </summary>
+        public void PresetVehicle(bool enabled)
+        {
+            checkBoxVehicle.Checked = enabled;
+            comboBoxVehicle.Enabled = enabled;
+        }
+
         private void btnOK_Click(object? sender, EventArgs e)
         {
             if (comboBoxPerson.SelectedValue == null)

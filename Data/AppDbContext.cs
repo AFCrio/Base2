@@ -27,6 +27,7 @@ public class AppDbContext : DbContext
     public DbSet<DutyAssignment> DutyAssignments { get; set; } = null!;
 
     // Шаблони
+    public DbSet<DutyTemplate> DutyTemplates { get; set; } = null!;
     public DbSet<TemplateNode> TemplateNodes { get; set; } = null!;
 
     public static void EnsureDatabaseUpToDate()
@@ -91,15 +92,6 @@ public class AppDbContext : DbContext
             entity.Property(e => e.PositionName)
                 .IsRequired()
                 .HasMaxLength(500);
-
-            entity.Property(e => e.HasWeapon)
-                .IsRequired();
-
-            entity.Property(e => e.HasAmmo)
-                .IsRequired();
-
-            entity.Property(e => e.IsDriver)
-                .IsRequired();
         });
 
         // =====================================================
@@ -197,17 +189,51 @@ public class AppDbContext : DbContext
         });
 
         // =====================================================
+        // DUTY TEMPLATE
+        // =====================================================
+        modelBuilder.Entity<DutyTemplate>(entity =>
+        {
+            entity.HasKey(e => e.DutyTemplateId);
+
+            entity.Property(e => e.TemplateName)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.IsActive)
+                .IsRequired();
+
+            entity.Property(e => e.CreatedAt)
+                .IsRequired();
+
+            entity.Property(e => e.UpdatedAt)
+                .IsRequired();
+        });
+
+        // =====================================================
         // DUTY TIME RANGE
         // =====================================================
         modelBuilder.Entity<DutyTimeRange>(entity =>
         {
             entity.HasKey(e => e.DutyTimeRangeId);
 
+            entity.Property(e => e.Label)
+                .IsRequired()
+                .HasMaxLength(200);
+
             entity.Property(e => e.Start)
                 .IsRequired();
 
             entity.Property(e => e.End)
                 .IsRequired();
+
+            // FK до DutyOrder
+            entity.HasOne(e => e.DutyOrder)
+                .WithMany(o => o.TimeRanges)
+                .HasForeignKey(e => e.DutyOrderId)
+                .OnDelete(DeleteBehavior.Cascade);
 
             // Ігноруємо computed properties
             entity.Ignore(e => e.StartTime);
@@ -240,6 +266,12 @@ public class AppDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(500);
 
+            // FK до DutyTemplate (шаблон-джерело)
+            entity.HasOne(e => e.SourceTemplate)
+                .WithMany(t => t.Orders)
+                .HasForeignKey(e => e.SourceTemplateId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             entity.HasIndex(e => e.OrderNumber)
                 .IsUnique();
         });
@@ -264,8 +296,20 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DutyPositionTitle)
                 .HasMaxLength(500);
 
-            entity.Property(e => e.LocationText)
-                .HasMaxLength(300);
+            entity.Property(e => e.HasWeapon)
+                .IsRequired();
+
+            entity.Property(e => e.HasAmmo)
+                .IsRequired();
+
+            entity.Property(e => e.HasVehicle)
+                .IsRequired();
+
+            entity.Property(e => e.MaxAssignments)
+                .IsRequired();
+
+            entity.Property(e => e.TimeRangeLabel)
+                .HasMaxLength(200);
 
             // FK до Parent (self-reference)
             entity.HasOne(e => e.Parent)
@@ -273,7 +317,13 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ParentDutySectionNodeId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // FK до DutyOrder
+            // FK до DutyTemplate (для вузлів шаблону)
+            entity.HasOne(e => e.DutyTemplate)
+                .WithMany(t => t.Sections)
+                .HasForeignKey(e => e.DutyTemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // FK до DutyOrder (для вузлів наказу)
             entity.HasOne(e => e.DutyOrder)
                 .WithMany(o => o.Sections)
                 .HasForeignKey(e => e.DutyOrderId)
@@ -285,6 +335,7 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.DutyTimeRangeId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            entity.HasIndex(e => e.DutyTemplateId);
             entity.HasIndex(e => e.DutyOrderId);
             entity.HasIndex(e => e.ParentDutySectionNodeId);
             entity.HasIndex(e => new { e.ParentDutySectionNodeId, e.OrderIndex });

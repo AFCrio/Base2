@@ -11,17 +11,13 @@ namespace Base2.Forms
 
         private Dictionary<NodeType, string> _nodeTypeDescriptions = new()
         {
-            { NodeType.DocumentRoot, "Корінь документа (заголовок наказу)" },
-            { NodeType.SectionHeader, "Заголовок секції без даних" },
-            { NodeType.LocationSection, "Секція з локацією (містечко)" },
-            { NodeType.SimplePosition, "Одна особа зі зброєю" },
-            { NodeType.SimplePositionNoWeapon, "Одна особа без зброї" },
+            { NodeType.SectionHeader, "Заголовок секції (корінь нумерації)" },
+            { NodeType.LocationSection, "Секція з контекстом локації" },
+            { NodeType.SimplePosition, "Одна особа (HasWeapon/HasVehicle за прапорцями)" },
             { NodeType.DriverPosition, "Водій з транспортом" },
-            { NodeType.GroupInline, "Група зі зброєю, в один рядок" },
-            { NodeType.GroupInlineNoWeapon, "Група без зброї, в один рядок" },
-            { NodeType.GroupNested, "Група без зброї, з підпунктами" },
-            { NodeType.GroupNestedWithWeapon, "Група зі зброєю, з підпунктами" },
-            { NodeType.TimeRange, "Часовий діапазон" },
+            { NodeType.GroupInline, "Група, список в рядок" },
+            { NodeType.GroupNested, "Група з підпунктами" },
+            { NodeType.TimeRange, "Часовий діапазон (зміна)" },
             { NodeType.MedicalPosition, "Черговий медпункту" },
             { NodeType.FireGroupSection, "Заголовок секції вогневих груп" },
             { NodeType.FireGroupLocation, "Вогнева група в локації" },
