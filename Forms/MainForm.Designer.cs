@@ -32,98 +32,182 @@ namespace Base2.Forms
         /// </summary>
         private void InitializeComponent()
         {
-            panelButtons = new Panel();
-            btnRefresh = new Button();
-            btnDeleteOrder = new Button();
-            btnEditStructure = new Button();
-            btnNewOrder = new Button();
+            panelTemplate = new Panel();
+            labelTemplate = new Label();
+            comboBoxTemplates = new ComboBox();
+            btnEditTemplate = new Button();
+            btnNewTemplate = new Button();
+            btnDeleteTemplate = new Button();
+            panelOrders = new Panel();
             labelOrders = new Label();
+            btnNewOrder = new Button();
+            btnEditOrder = new Button();
+            btnDeleteOrder = new Button();
+            btnRefresh = new Button();
             dataGridViewOrders = new DataGridView();
-            panelButtons.SuspendLayout();
+            labelOutdated = new Label();
+            panelTemplate.SuspendLayout();
+            panelOrders.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewOrders).BeginInit();
             SuspendLayout();
             // 
-            // panelButtons
+            // panelTemplate
             // 
-            panelButtons.Controls.Add(btnRefresh);
-            panelButtons.Controls.Add(btnDeleteOrder);
-            panelButtons.Controls.Add(btnEditStructure);
-            panelButtons.Controls.Add(btnNewOrder);
-            panelButtons.Dock = DockStyle.Top;
-            panelButtons.Location = new Point(0, 0);
-            panelButtons.Name = "panelButtons";
-            panelButtons.Size = new Size(1200, 60);
-            panelButtons.TabIndex = 0;
+            panelTemplate.BackColor = Color.FromArgb(240, 245, 255);
+            panelTemplate.BorderStyle = BorderStyle.FixedSingle;
+            panelTemplate.Controls.Add(labelTemplate);
+            panelTemplate.Controls.Add(comboBoxTemplates);
+            panelTemplate.Controls.Add(btnEditTemplate);
+            panelTemplate.Controls.Add(btnNewTemplate);
+            panelTemplate.Controls.Add(btnDeleteTemplate);
+            panelTemplate.Dock = DockStyle.Top;
+            panelTemplate.Location = new Point(0, 0);
+            panelTemplate.Name = "panelTemplate";
+            panelTemplate.Padding = new Padding(12, 8, 12, 8);
+            panelTemplate.Size = new Size(1200, 60);
+            panelTemplate.TabIndex = 0;
             // 
-            // btnRefresh
+            // labelTemplate
             // 
-            btnRefresh.BackColor = Color.LightYellow;
-            btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnRefresh.Image = Properties.Resources.refresh_icon;
-            btnRefresh.Location = new Point(485, 12);
-            btnRefresh.Name = "btnRefresh";
-            btnRefresh.Size = new Size(120, 40);
-            btnRefresh.TabIndex = 3;
-            btnRefresh.Text = "🔄 Оновити";
-            btnRefresh.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnRefresh.UseVisualStyleBackColor = false;
-            btnRefresh.Click += btnRefresh_Click;
+            labelTemplate.AutoSize = true;
+            labelTemplate.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            labelTemplate.ForeColor = Color.DarkSlateBlue;
+            labelTemplate.Location = new Point(12, 18);
+            labelTemplate.Name = "labelTemplate";
+            labelTemplate.Size = new Size(72, 19);
+            labelTemplate.TabIndex = 0;
+            labelTemplate.Text = "Шаблон:";
+            // 
+            // comboBoxTemplates
+            // 
+            comboBoxTemplates.DropDownStyle = ComboBoxStyle.DropDownList;
+            comboBoxTemplates.Font = new Font("Segoe UI", 10F);
+            comboBoxTemplates.Location = new Point(90, 15);
+            comboBoxTemplates.Name = "comboBoxTemplates";
+            comboBoxTemplates.Size = new Size(400, 25);
+            comboBoxTemplates.TabIndex = 1;
+            comboBoxTemplates.SelectedIndexChanged += comboBoxTemplates_SelectedIndexChanged;
+            // 
+            // btnEditTemplate
+            // 
+            btnEditTemplate.BackColor = Color.LightBlue;
+            btnEditTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnEditTemplate.Location = new Point(510, 13);
+            btnEditTemplate.Name = "btnEditTemplate";
+            btnEditTemplate.Size = new Size(170, 32);
+            btnEditTemplate.TabIndex = 2;
+            btnEditTemplate.Text = "✏️ Редагувати шаблон";
+            btnEditTemplate.UseVisualStyleBackColor = false;
+            btnEditTemplate.Click += btnEditTemplate_Click;
+            // 
+            // btnNewTemplate
+            // 
+            btnNewTemplate.BackColor = Color.LightGreen;
+            btnNewTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnNewTemplate.Location = new Point(690, 13);
+            btnNewTemplate.Name = "btnNewTemplate";
+            btnNewTemplate.Size = new Size(150, 32);
+            btnNewTemplate.TabIndex = 3;
+            btnNewTemplate.Text = "➕ Новий шаблон";
+            btnNewTemplate.UseVisualStyleBackColor = false;
+            btnNewTemplate.Click += btnNewTemplate_Click;
+            // 
+            // btnDeleteTemplate
+            // 
+            btnDeleteTemplate.BackColor = Color.MistyRose;
+            btnDeleteTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnDeleteTemplate.Location = new Point(850, 13);
+            btnDeleteTemplate.Name = "btnDeleteTemplate";
+            btnDeleteTemplate.Size = new Size(160, 32);
+            btnDeleteTemplate.TabIndex = 4;
+            btnDeleteTemplate.Text = "🗑️ Видалити шаблон";
+            btnDeleteTemplate.UseVisualStyleBackColor = false;
+            btnDeleteTemplate.Click += btnDeleteTemplate_Click;
+            // 
+            // panelOrders
+            // 
+            panelOrders.Controls.Add(labelOrders);
+            panelOrders.Controls.Add(btnNewOrder);
+            panelOrders.Controls.Add(btnEditOrder);
+            panelOrders.Controls.Add(btnDeleteOrder);
+            panelOrders.Controls.Add(btnRefresh);
+            panelOrders.Controls.Add(labelOutdated);
+            panelOrders.Dock = DockStyle.Top;
+            panelOrders.Location = new Point(0, 60);
+            panelOrders.Name = "panelOrders";
+            panelOrders.Size = new Size(1200, 50);
+            panelOrders.TabIndex = 1;
+            // 
+            // labelOrders
+            // 
+            labelOrders.AutoSize = true;
+            labelOrders.Font = new Font("Segoe UI", 10F, FontStyle.Bold);
+            labelOrders.ForeColor = Color.DarkBlue;
+            labelOrders.Location = new Point(12, 14);
+            labelOrders.Name = "labelOrders";
+            labelOrders.Size = new Size(66, 19);
+            labelOrders.TabIndex = 0;
+            labelOrders.Text = "Накази:";
+            // 
+            // btnNewOrder
+            // 
+            btnNewOrder.BackColor = Color.LightGreen;
+            btnNewOrder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnNewOrder.Location = new Point(90, 10);
+            btnNewOrder.Name = "btnNewOrder";
+            btnNewOrder.Size = new Size(160, 32);
+            btnNewOrder.TabIndex = 1;
+            btnNewOrder.Text = "📄 Створити наказ";
+            btnNewOrder.UseVisualStyleBackColor = false;
+            btnNewOrder.Click += btnNewOrder_Click;
+            // 
+            // btnEditOrder
+            // 
+            btnEditOrder.BackColor = Color.LightBlue;
+            btnEditOrder.Enabled = false;
+            btnEditOrder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnEditOrder.Location = new Point(260, 10);
+            btnEditOrder.Name = "btnEditOrder";
+            btnEditOrder.Size = new Size(170, 32);
+            btnEditOrder.TabIndex = 2;
+            btnEditOrder.Text = "✏️ Редагувати наказ";
+            btnEditOrder.UseVisualStyleBackColor = false;
+            btnEditOrder.Click += btnEditOrder_Click;
             // 
             // btnDeleteOrder
             // 
             btnDeleteOrder.BackColor = Color.LightCoral;
             btnDeleteOrder.Enabled = false;
             btnDeleteOrder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnDeleteOrder.Image = Properties.Resources.delete_icon;
-            btnDeleteOrder.Location = new Point(345, 12);
+            btnDeleteOrder.Location = new Point(440, 10);
             btnDeleteOrder.Name = "btnDeleteOrder";
-            btnDeleteOrder.Size = new Size(120, 40);
-            btnDeleteOrder.TabIndex = 2;
+            btnDeleteOrder.Size = new Size(140, 32);
+            btnDeleteOrder.TabIndex = 3;
             btnDeleteOrder.Text = "🗑️ Видалити";
-            btnDeleteOrder.TextImageRelation = TextImageRelation.ImageBeforeText;
             btnDeleteOrder.UseVisualStyleBackColor = false;
             btnDeleteOrder.Click += btnDeleteOrder_Click;
             // 
-            // btnEditStructure
+            // btnRefresh
             // 
-            btnEditStructure.BackColor = Color.LightBlue;
-            btnEditStructure.Enabled = false;
-            btnEditStructure.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnEditStructure.Image = Properties.Resources.edit_icon;
-            btnEditStructure.Location = new Point(165, 12);
-            btnEditStructure.Name = "btnEditStructure";
-            btnEditStructure.Size = new Size(160, 40);
-            btnEditStructure.TabIndex = 1;
-            btnEditStructure.Text = "✏️ Редагувати структуру";
-            btnEditStructure.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnEditStructure.UseVisualStyleBackColor = false;
-            btnEditStructure.Click += btnEditStructure_Click;
+            btnRefresh.BackColor = Color.LightYellow;
+            btnRefresh.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnRefresh.Location = new Point(590, 10);
+            btnRefresh.Name = "btnRefresh";
+            btnRefresh.Size = new Size(120, 32);
+            btnRefresh.TabIndex = 4;
+            btnRefresh.Text = "🔄 Оновити";
+            btnRefresh.UseVisualStyleBackColor = false;
+            btnRefresh.Click += btnRefresh_Click;
             // 
-            // btnNewOrder
+            // labelOutdated
             // 
-            btnNewOrder.BackColor = Color.LightGreen;
-            btnNewOrder.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnNewOrder.Image = Properties.Resources.add_icon;
-            btnNewOrder.ImageAlign = ContentAlignment.TopLeft;
-            btnNewOrder.Location = new Point(12, 12);
-            btnNewOrder.Name = "btnNewOrder";
-            btnNewOrder.Size = new Size(140, 40);
-            btnNewOrder.TabIndex = 0;
-            btnNewOrder.Text = "📄 Новий наказ";
-            btnNewOrder.TextImageRelation = TextImageRelation.ImageBeforeText;
-            btnNewOrder.UseVisualStyleBackColor = false;
-            btnNewOrder.Click += btnNewOrder_Click;
-            // 
-            // labelOrders
-            // 
-            labelOrders.AutoSize = true;
-            labelOrders.Font = new Font("Segoe UI", 12F, FontStyle.Bold);
-            labelOrders.ForeColor = Color.DarkBlue;
-            labelOrders.Location = new Point(12, 70);
-            labelOrders.Name = "labelOrders";
-            labelOrders.Size = new Size(195, 21);
-            labelOrders.TabIndex = 1;
-            labelOrders.Text = "Існуючі добові наряди:";
+            labelOutdated.AutoSize = true;
+            labelOutdated.Font = new Font("Segoe UI", 9F, FontStyle.Italic);
+            labelOutdated.ForeColor = Color.OrangeRed;
+            labelOutdated.Location = new Point(720, 17);
+            labelOutdated.Name = "labelOutdated";
+            labelOutdated.Size = new Size(0, 15);
+            labelOutdated.TabIndex = 5;
             // 
             // dataGridViewOrders
             // 
@@ -132,15 +216,16 @@ namespace Base2.Forms
             dataGridViewOrders.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             dataGridViewOrders.BackgroundColor = Color.White;
             dataGridViewOrders.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dataGridViewOrders.Location = new Point(12, 100);
+            dataGridViewOrders.Location = new Point(12, 115);
             dataGridViewOrders.MultiSelect = false;
             dataGridViewOrders.Name = "dataGridViewOrders";
             dataGridViewOrders.ReadOnly = true;
             dataGridViewOrders.RowHeadersVisible = false;
             dataGridViewOrders.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewOrders.Size = new Size(1176, 500);
+            dataGridViewOrders.Size = new Size(1176, 485);
             dataGridViewOrders.TabIndex = 2;
             dataGridViewOrders.SelectionChanged += dataGridViewOrders_SelectionChanged;
+            dataGridViewOrders.CellDoubleClick += dataGridViewOrders_CellDoubleClick;
             // 
             // MainForm
             // 
@@ -148,27 +233,35 @@ namespace Base2.Forms
             AutoScaleMode = AutoScaleMode.Font;
             ClientSize = new Size(1200, 650);
             Controls.Add(dataGridViewOrders);
-            Controls.Add(labelOrders);
-            Controls.Add(panelButtons);
-            MinimumSize = new Size(800, 600);
+            Controls.Add(panelOrders);
+            Controls.Add(panelTemplate);
+            MinimumSize = new Size(900, 600);
             Name = "MainForm";
             StartPosition = FormStartPosition.CenterScreen;
-            Text = "Добові наряди - Головна";
-            panelButtons.ResumeLayout(false);
+            Text = "Добові наряди — Головна";
+            panelTemplate.ResumeLayout(false);
+            panelTemplate.PerformLayout();
+            panelOrders.ResumeLayout(false);
+            panelOrders.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewOrders).EndInit();
             ResumeLayout(false);
-            PerformLayout();
-
         }
 
         #endregion
 
-        private System.Windows.Forms.Panel panelButtons;
+        private System.Windows.Forms.Panel panelTemplate;
+        private System.Windows.Forms.Label labelTemplate;
+        private System.Windows.Forms.ComboBox comboBoxTemplates;
+        private System.Windows.Forms.Button btnEditTemplate;
+        private System.Windows.Forms.Button btnNewTemplate;
+        private System.Windows.Forms.Button btnDeleteTemplate;
+        private System.Windows.Forms.Panel panelOrders;
+        private System.Windows.Forms.Label labelOrders;
         private System.Windows.Forms.Button btnNewOrder;
-        private System.Windows.Forms.Button btnEditStructure;
+        private System.Windows.Forms.Button btnEditOrder;
         private System.Windows.Forms.Button btnDeleteOrder;
         private System.Windows.Forms.Button btnRefresh;
-        private System.Windows.Forms.Label labelOrders;
+        private System.Windows.Forms.Label labelOutdated;
         private System.Windows.Forms.DataGridView dataGridViewOrders;
     }
 }

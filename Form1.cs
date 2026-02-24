@@ -25,11 +25,8 @@ namespace Base2
 
         private void bOrderForm_Click(object sender, EventArgs e)
         {
-            using (var context = new AppDbContext())
-            {
-                OrderEditorForm orderEditorForm = new OrderEditorForm();
-                orderEditorForm.ShowDialog();
-            }
+            var mainForm = new MainForm();
+            mainForm.ShowDialog();
         }
     }
 }

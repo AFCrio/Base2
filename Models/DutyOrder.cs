@@ -16,6 +16,12 @@ public class DutyOrder
     public int SourceTemplateId { get; set; }
 
     /// <summary>
+    /// Версія шаблону, з якої створено наказ.
+    /// Дозволяє визначити, чи наказ створений з актуальної версії шаблону.
+    /// </summary>
+    public int SourceTemplateVersion { get; set; }
+
+    /// <summary>
     /// Номер наказу (А4463/19-01-2026)
     /// </summary>
     public string OrderNumber { get; set; } = string.Empty;

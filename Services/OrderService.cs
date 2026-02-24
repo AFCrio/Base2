@@ -18,7 +18,8 @@ public class OrderService
 
     /// <summary>
     /// Створити новий наказ на основі шаблону.
-    /// Клонує дерево вузлів, створює DutyTimeRange для кожного TimeRange-вузла.
+    /// Клонує дерево вузлів (batch insert), створює DutyTimeRange для кожного TimeRange-вузла.
+    /// Фіксує версію шаблону в наказі.
     /// </summary>
     public DutyOrder CreateOrderFromTemplate(int templateId, string orderNumber, DateOnly orderDate,
         DateTime start, DateTime end, string commanderInfo)
@@ -38,6 +39,7 @@ public class OrderService
         var order = new DutyOrder
         {
             SourceTemplateId = templateId,
+            SourceTemplateVersion = template.Version,
             OrderNumber = orderNumber,
             OrderDate = orderDate,
             StartDateTime = start,
@@ -48,25 +50,19 @@ public class OrderService
         _context.DutyOrders.Add(order);
         _context.SaveChanges(); // Отримуємо DutyOrderId
 
-        // Клонуємо дерево: oldId → newNode
+        // ── Batch-клонування дерева ──
+        // Крок 1: створюємо всі вузли з тимчасовим ParentId = null
         var idMapping = new Dictionary<int, DutySectionNode>();
+        var pendingParents = new List<(DutySectionNode cloned, int originalParentId)>();
+        var timeRangeNodes = new List<DutySectionNode>();
 
-        // Спочатку кореневі вузли, потім дочірні (BFS по рівнях)
-        var rootNodes = allTemplateNodes.Where(n => n.ParentDutySectionNodeId == null).ToList();
-        var queue = new Queue<(DutySectionNode templateNode, int? newParentId)>();
-
-        foreach (var root in rootNodes)
-            queue.Enqueue((root, null));
-
-        while (queue.Count > 0)
+        foreach (var templateNode in allTemplateNodes)
         {
-            var (templateNode, newParentId) = queue.Dequeue();
-
             var cloned = new DutySectionNode
             {
                 DutyOrderId = order.DutyOrderId,
                 DutyTemplateId = null,
-                ParentDutySectionNodeId = newParentId,
+                ParentDutySectionNodeId = null, // Встановимо потім
                 NodeType = templateNode.NodeType,
                 OrderIndex = templateNode.OrderIndex,
                 DutyPositionTitle = templateNode.DutyPositionTitle,
@@ -78,41 +74,85 @@ public class OrderService
             };
 
             _context.DutySectionNodes.Add(cloned);
-            _context.SaveChanges(); // Отримуємо Id
-
             idMapping[templateNode.DutySectionNodeId] = cloned;
 
-            // Створюємо DutyTimeRange для TimeRange-вузлів
+            if (templateNode.ParentDutySectionNodeId.HasValue)
+                pendingParents.Add((cloned, templateNode.ParentDutySectionNodeId.Value));
+
             if (templateNode.NodeType == NodeType.TimeRange && !string.IsNullOrEmpty(templateNode.TimeRangeLabel))
-            {
-                var timeRange = new DutyTimeRange
-                {
-                    DutyOrderId = order.DutyOrderId,
-                    Label = templateNode.TimeRangeLabel,
-                    Start = order.StartDateTime,
-                    End = order.EndDateTime
-                };
-
-                _context.DutyTimeRanges.Add(timeRange);
-                _context.SaveChanges();
-
-                cloned.DutyTimeRangeId = timeRange.DutyTimeRangeId;
-                _context.SaveChanges();
-            }
-
-            // Додаємо дочірні вузли в чергу
-            var children = allTemplateNodes
-                .Where(n => n.ParentDutySectionNodeId == templateNode.DutySectionNodeId)
-                .OrderBy(n => n.OrderIndex);
-
-            foreach (var child in children)
-                queue.Enqueue((child, cloned.DutySectionNodeId));
+                timeRangeNodes.Add(cloned);
         }
+
+        _context.SaveChanges(); // Batch insert — всі вузли отримують Id
+
+        // Крок 2: встановлюємо ParentId за маппінгом
+        foreach (var (cloned, originalParentId) in pendingParents)
+        {
+            if (idMapping.TryGetValue(originalParentId, out var parentNode))
+                cloned.ParentDutySectionNodeId = parentNode.DutySectionNodeId;
+        }
+
+        _context.SaveChanges(); // Оновлюємо FK батьків
+
+        // Крок 3: створюємо DutyTimeRange для TimeRange-вузлів
+        foreach (var node in timeRangeNodes)
+        {
+            var timeRange = new DutyTimeRange
+            {
+                DutyOrderId = order.DutyOrderId,
+                Label = node.TimeRangeLabel!,
+                Start = order.StartDateTime,
+                End = order.EndDateTime
+            };
+
+            _context.DutyTimeRanges.Add(timeRange);
+            _context.SaveChanges();
+
+            node.DutyTimeRangeId = timeRange.DutyTimeRangeId;
+        }
+
+        _context.SaveChanges();
 
         // Генеруємо Title
         GenerateTitles(order.DutyOrderId);
 
         return order;
+    }
+
+    /// <summary>
+    /// Інкрементує версію шаблону та записує зміну в журнал.
+    /// Викликати при кожному збереженні змін до шаблону.
+    /// </summary>
+    public void IncrementTemplateVersion(DutyTemplate template, string changeDescription)
+    {
+        template.Version++;
+        template.UpdatedAt = DateTime.Now;
+
+        var log = new TemplateChangeLog
+        {
+            DutyTemplateId = template.DutyTemplateId,
+            Version = template.Version,
+            ChangedAt = DateTime.Now,
+            ChangedBy = Environment.UserName,
+            ChangeDescription = changeDescription
+        };
+
+        _context.TemplateChangeLogs.Add(log);
+        _context.SaveChanges();
+    }
+
+    /// <summary>
+    /// Повертає накази, створені з застарілої версії шаблону.
+    /// </summary>
+    public List<DutyOrder> GetOutdatedOrders(int templateId)
+    {
+        var template = _context.DutyTemplates.Find(templateId);
+        if (template == null) return [];
+
+        return _context.DutyOrders
+            .Where(o => o.SourceTemplateId == templateId
+                     && o.SourceTemplateVersion < template.Version)
+            .ToList();
     }
 
     /// <summary>

@@ -23,10 +23,16 @@ public class DutyTemplate
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Версія шаблону (автоінкремент при кожній зміні)
+    /// </summary>
+    public int Version { get; set; } = 1;
+
     public DateTime CreatedAt { get; set; } = DateTime.Now;
     public DateTime UpdatedAt { get; set; } = DateTime.Now;
 
     // Навігація
     public List<DutySectionNode> Sections { get; set; } = new();
     public List<DutyOrder> Orders { get; set; } = new();
+    public List<TemplateChangeLog> ChangeLogs { get; set; } = new();
 }

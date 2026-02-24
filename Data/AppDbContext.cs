@@ -29,6 +29,7 @@ public class AppDbContext : DbContext
     // Шаблони
     public DbSet<DutyTemplate> DutyTemplates { get; set; } = null!;
     public DbSet<TemplateNode> TemplateNodes { get; set; } = null!;
+    public DbSet<TemplateChangeLog> TemplateChangeLogs { get; set; } = null!;
 
     public static void EnsureDatabaseUpToDate()
     {
@@ -205,6 +206,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.IsActive)
                 .IsRequired();
 
+            entity.Property(e => e.Version)
+                .IsRequired();
+
             entity.Property(e => e.CreatedAt)
                 .IsRequired();
 
@@ -265,6 +269,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CommanderInfo)
                 .IsRequired()
                 .HasMaxLength(500);
+
+            entity.Property(e => e.SourceTemplateVersion)
+                .IsRequired();
 
             // FK до DutyTemplate (шаблон-джерело)
             entity.HasOne(e => e.SourceTemplate)
@@ -380,6 +387,37 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(e => e.DutySectionNodeId);
             entity.HasIndex(e => e.PersonId);
+        });
+
+        // =====================================================
+        // TEMPLATE CHANGE LOG
+        // =====================================================
+        modelBuilder.Entity<TemplateChangeLog>(entity =>
+        {
+            entity.HasKey(e => e.TemplateChangeLogId);
+
+            entity.Property(e => e.Version)
+                .IsRequired();
+
+            entity.Property(e => e.ChangedAt)
+                .IsRequired();
+
+            entity.Property(e => e.ChangedBy)
+                .IsRequired()
+                .HasMaxLength(200);
+
+            entity.Property(e => e.ChangeDescription)
+                .IsRequired()
+                .HasMaxLength(2000);
+
+            // FK до DutyTemplate
+            entity.HasOne(e => e.DutyTemplate)
+                .WithMany(t => t.ChangeLogs)
+                .HasForeignKey(e => e.DutyTemplateId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.DutyTemplateId);
+            entity.HasIndex(e => new { e.DutyTemplateId, e.Version });
         });
 
         // =====================================================
