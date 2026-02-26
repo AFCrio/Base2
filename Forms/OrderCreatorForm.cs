@@ -249,9 +249,9 @@ namespace Base2.Forms
 
             if (!string.IsNullOrEmpty(section.DutyPositionTitle))
             {
-                // Рендеримо шаблон з першим призначенням та TimeRange
+                // Рендеримо шаблон з усіма контекстами
                 var firstAssignment = section.Assignments.FirstOrDefault();
-                var rendered = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange);
+                var rendered = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order);
                 parts.Add(rendered);
             }
             else
@@ -429,7 +429,7 @@ namespace Base2.Forms
             if (!string.IsNullOrEmpty(section.DutyPositionTitle))
             {
                 var firstAssignment = section.Assignments.FirstOrDefault();
-                txtRenderedText.Text = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange);
+                txtRenderedText.Text = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order);
             }
             else
             {

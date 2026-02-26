@@ -1,4 +1,5 @@
 using Base2.Models;
+using System;
 using System.Text.RegularExpressions;
 
 namespace Base2.Services;
@@ -10,19 +11,33 @@ public static class TemplateRenderer
 {
     private static readonly Regex _placeholderRegex = new(@"\{[A-Za-z]+\}", RegexOptions.Compiled);
 
+    private static readonly string[] MonthsGenitive =
+    [
+        "", "січня", "лютого", "березня", "квітня", "травня",
+        "червня", "липня", "серпня", "вересня", "жовтня", "листопада", "грудня"
+    ];
+
     /// <summary>
     /// Замінює плейсхолдери в DutyPositionTitle на реальні дані.
-    /// Спочатку підставляє дані часового діапазону, потім особові дані.
+    /// Порядок підстановки: наказ → часовий діапазон → особові дані.
     /// Незамінені плейсхолдери стають "___".
     /// </summary>
-    /// <param name="template">Текстовий шаблон з плейсхолдерами</param>
-    /// <param name="assignment">Призначення (особа, зброя, транспорт) — може бути null</param>
-    /// <param name="timeRange">Часовий діапазон (зміна) — може бути null</param>
-    public static string Render(string template, DutyAssignment? assignment = null, DutyTimeRange? timeRange = null)
+    public static string Render(
+        string template,
+        DutyAssignment? assignment = null,
+        DutyTimeRange? timeRange = null,
+        DutyOrder? order = null)
     {
         var result = template;
 
-        // ── Часовий діапазон ──
+        // ── Дані наказу ──
+        if (order != null)
+        {
+            result = result.Replace("{OrderPeriod}", FormatOrderPeriod(order.StartDateTime, order.EndDateTime));
+            result = result.Replace("{CommanderInfo}", order.CommanderInfo);
+        }
+
+        // ── Часовий діапазон (зміна) ──
         if (timeRange != null)
         {
             result = result.Replace("{TimeLabel}", timeRange.Label);
@@ -56,5 +71,33 @@ public static class TemplateRenderer
         result = _placeholderRegex.Replace(result, "___");
 
         return result;
+    }
+
+    /// <summary>
+    /// Форматує період дії наказу українською мовою.
+    /// Приклади:
+    ///   Один місяць:    "з 19 по 20 лютого 2026 року"
+    ///   Різні місяці:   "з 31 січня по 1 лютого 2026 року"
+    ///   Різні роки:     "з 31 грудня 2025 по 1 січня 2026 року"
+    /// </summary>
+    public static string FormatOrderPeriod(DateTime start, DateTime end)
+    {
+        int sd = start.Day, sm = start.Month, sy = start.Year;
+        int ed = end.Day, em = end.Month, ey = end.Year;
+
+        if (sy != ey)
+        {
+            // з 31 грудня 2025 по 1 січня 2026 року
+            return $"з {sd} {MonthsGenitive[sm]} {sy} по {ed} {MonthsGenitive[em]} {ey} року";
+        }
+
+        if (sm != em)
+        {
+            // з 31 січня по 1 лютого 2026 року
+            return $"з {sd} {MonthsGenitive[sm]} по {ed} {MonthsGenitive[em]} {ey} року";
+        }
+
+        // з 19 по 20 лютого 2026 року
+        return $"з {sd} по {ed} {MonthsGenitive[em]} {ey} року";
     }
 }

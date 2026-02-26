@@ -305,7 +305,11 @@ public partial class TemplateEditorForm : Form
     {
         var list = new List<(string, string)>();
 
-        // Особові дані — для всіх позицій та груп
+        // ══════════ Дані наказу — доступні для ВСІХ типів вузлів ══════════
+        list.Add(("{OrderPeriod}", "з 19 по 20 лютого 2026 року"));
+        list.Add(("{CommanderInfo}", "Інформація про командира (ПІБ, звання, посада)"));
+
+        // ══════════ Особові дані — для позицій та груп ══════════
         if (nodeType is NodeType.SimplePosition or NodeType.MedicalPosition
             or NodeType.DriverPosition or NodeType.GroupInline
             or NodeType.GroupNested or NodeType.FireGroupInline)
@@ -317,7 +321,7 @@ public partial class TemplateEditorForm : Form
             list.Add(("{Position}", "Штатна посада особи"));
         }
 
-        // Зброя — для позицій де може бути зброя
+        // ══════════ Зброя та набої ══════════
         if (nodeType is NodeType.SimplePosition or NodeType.MedicalPosition
             or NodeType.DriverPosition or NodeType.GroupInline
             or NodeType.GroupNested or NodeType.FireGroupInline)
@@ -328,21 +332,21 @@ public partial class TemplateEditorForm : Form
             list.Add(("{AmmoCount}", "Кількість набоїв (120, 16)"));
         }
 
-        // Транспорт — для водіїв
+        // ══════════ Транспорт — для водіїв ══════════
         if (nodeType is NodeType.DriverPosition)
         {
             list.Add(("{VehicleName}", "Марка/назва транспорту (УАЗ-469, КамАЗ)"));
             list.Add(("{VehicleNumber}", "Номерний знак (АА1234ВВ)"));
         }
 
-        // Часові діапазони — для TimeRange
+        // ══════════ Часові діапазони — для TimeRange ══════════
         if (nodeType is NodeType.TimeRange)
         {
             list.Add(("{TimeLabel}", "Мітка зміни (Зміна 1, Нічна зміна)"));
             list.Add(("{StartTime}", "Час початку зміни (08:00)"));
             list.Add(("{EndTime}", "Час закінчення зміни (20:00)"));
-            list.Add(("{StartDate}", "Дата початку (19.01.2026)"));
-            list.Add(("{EndDate}", "Дата закінчення (20.01.2026)"));
+            list.Add(("{StartDate}", "Дата початку зміни (19.01.2026)"));
+            list.Add(("{EndDate}", "Дата закінчення зміни (20.01.2026)"));
         }
 
         return list;
