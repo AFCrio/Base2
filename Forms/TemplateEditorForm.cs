@@ -71,6 +71,8 @@ public partial class TemplateEditorForm : Form
         _template = _context.DutyTemplates
             .Include(t => t.Sections)
                 .ThenInclude(s => s.Children)
+            .Include(t => t.Sections)
+                .ThenInclude(s => s.Location)
             .FirstOrDefault(t => t.DutyTemplateId == templateId);
 
         if (_template == null)
@@ -130,8 +132,7 @@ public partial class TemplateEditorForm : Form
     {
         var icon = s.NodeType switch
         {
-            NodeType.SectionHeader => "📑",
-            NodeType.LocationSection => "📍",
+            NodeType.SectionHeader => s.LocationId != null ? "📍" : "📑",
             NodeType.SimplePosition or NodeType.MedicalPosition => "👤",
             NodeType.DriverPosition => "🚗",
             NodeType.GroupInline or NodeType.GroupNested => "👥",
@@ -144,6 +145,9 @@ public partial class TemplateEditorForm : Form
         var title = !string.IsNullOrEmpty(s.Title) ? $"{s.Title}. " : "";
         var text = s.DutyPositionTitle ?? s.NodeType.ToString();
 
+        // Показуємо назву локації якщо прив'язано
+        var locInfo = s.Location != null ? $" [{s.Location.LocationName}]" : "";
+
         var flags = "";
         if (s.HasWeapon) flags += "🔫";
         if (s.HasAmmo) flags += "🎯";
@@ -151,13 +155,13 @@ public partial class TemplateEditorForm : Form
         if (s.MaxAssignments == 0) flags += " (∞)";
         else if (s.MaxAssignments > 1) flags += $" (max:{s.MaxAssignments})";
 
-        return $"{icon} {title}{text} {flags}".Trim();
+        return $"{icon} {title}{text}{locInfo} {flags}".Trim();
     }
 
     private static Color GetNodeColor(NodeType t) => t switch
     {
         NodeType.SectionHeader or NodeType.FireGroupSection => Color.DarkBlue,
-        NodeType.LocationSection or NodeType.FireGroupLocation => Color.Teal,
+        NodeType.FireGroupLocation => Color.Teal,
         NodeType.TimeRange => Color.Purple,
         NodeType.DriverPosition => Color.SaddleBrown,
         NodeType.GroupInline or NodeType.GroupNested => Color.DarkGreen,
@@ -273,7 +277,11 @@ public partial class TemplateEditorForm : Form
                 break;
 
             case NodeType.SectionHeader:
-            case NodeType.LocationSection:
+                AddSeparator(ref y);
+                AddLabel("Прив'язка до локації (для фільтрації зброї)", ref y, bold: true);
+                AddLocationPicker(node, ref y);
+                break;
+
             case NodeType.FireGroupSection:
             case NodeType.FireGroupLocation:
                 // Тільки текстовий шаблон — вже додано вище
@@ -387,6 +395,82 @@ public partial class TemplateEditorForm : Form
         _txtTitle.Focus();
     }
 
+    /// <summary>
+    /// Додає ComboBox для вибору локації (опціонально).
+    /// Перший елемент — "(без локації)".
+    /// </summary>
+    private void AddLocationPicker(DutySectionNode node, ref int y)
+    {
+        var locations = _context.Locations.OrderBy(l => l.LocationName).ToList();
+
+        var cmb = new ComboBox
+        {
+            Location = new Point(0, y),
+            Width = Math.Max(panelRight.ClientSize.Width - 40, 300),
+            Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right,
+            Font = new Font("Segoe UI", 10F),
+            DropDownStyle = ComboBoxStyle.DropDownList,
+            Tag = node
+        };
+
+        cmb.Items.Add("(без локації)");
+        foreach (var loc in locations)
+            cmb.Items.Add(loc);
+
+        cmb.DisplayMember = "LocationName";
+
+        // Встановлюємо поточне значення
+        if (node.LocationId != null)
+        {
+            var current = locations.FirstOrDefault(l => l.LocationId == node.LocationId);
+            if (current != null)
+                cmb.SelectedItem = current;
+            else
+                cmb.SelectedIndex = 0;
+        }
+        else
+        {
+            cmb.SelectedIndex = 0;
+        }
+
+        cmb.SelectedIndexChanged += LocationPicker_Changed;
+        panelRight.Controls.Add(cmb);
+        y += 34;
+
+        // Підказка
+        var hint = new Label
+        {
+            Text = "Локація визначає, з якого містечка фільтрувати зброю при призначенні",
+            AutoSize = true,
+            Location = new Point(0, y),
+            Font = new Font("Segoe UI", 8.5F, FontStyle.Italic),
+            ForeColor = Color.Gray,
+            MaximumSize = new Size(panelRight.ClientSize.Width - 40, 0)
+        };
+        panelRight.Controls.Add(hint);
+        y += hint.PreferredHeight + 4;
+    }
+
+    private void LocationPicker_Changed(object? sender, EventArgs e)
+    {
+        if (sender is not ComboBox cmb) return;
+        if (_selectedNode == null) return;
+
+        if (cmb.SelectedItem is Location loc)
+        {
+            _selectedNode.LocationId = loc.LocationId;
+            _selectedNode.Location = loc;
+        }
+        else
+        {
+            _selectedNode.LocationId = null;
+            _selectedNode.Location = null;
+        }
+
+        SaveQuiet();
+        RefreshSelectedTreeNode();
+    }
+
     // ═════════════════════════════════════════════════════
     //  PANEL CONTROL FACTORY
     // ═════════════════════════════════════════════════════
@@ -477,8 +561,7 @@ public partial class TemplateEditorForm : Form
 
     private static string GetNodeTypeLabel(NodeType t) => t switch
     {
-        NodeType.SectionHeader => "Заголовок секції",
-        NodeType.LocationSection => "Секція локації",
+        NodeType.SectionHeader => "Секція (заголовок / локація)",
         NodeType.SimplePosition => "Проста позиція (1 особа)",
         NodeType.DriverPosition => "Водій з транспортом",
         NodeType.GroupInline => "Група (рядком)",
@@ -493,8 +576,7 @@ public partial class TemplateEditorForm : Form
 
     private static string GetTitleFieldLabel(NodeType t) => t switch
     {
-        NodeType.SectionHeader => "Заголовок:",
-        NodeType.LocationSection => "Назва локації:",
+        NodeType.SectionHeader => "Заголовок секції:",
         NodeType.TimeRange => "Текстовий шаблон зміни (з плейсхолдерами):",
         NodeType.FireGroupSection => "Заголовок:",
         NodeType.FireGroupLocation => "Назва локації:",
@@ -502,8 +584,7 @@ public partial class TemplateEditorForm : Form
     };
 
     private static bool IsMultilineTitle(NodeType t) =>
-        t is NodeType.SectionHeader or NodeType.LocationSection
-        or NodeType.FireGroupSection or NodeType.FireGroupLocation;
+        t is NodeType.SectionHeader or NodeType.FireGroupSection or NodeType.FireGroupLocation;
 
     // ═════════════════════════════════════════════════════
     //  EVENT HANDLERS: PANEL → MODEL
@@ -767,7 +848,6 @@ public partial class TemplateEditorForm : Form
     private static string GetDefaultTitle(NodeType t) => t switch
     {
         NodeType.SectionHeader => "Новий розділ",
-        NodeType.LocationSection => "Локація",
         NodeType.SimplePosition => "Черговий – {Rank} {LastName} {Initials}",
         NodeType.DriverPosition => "Водій – {Rank} {LastName} {Initials}",
         NodeType.GroupInline => "Наряд в складі:",

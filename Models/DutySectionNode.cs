@@ -78,6 +78,13 @@ public class DutySectionNode
     /// </summary>
     public int? DutyTimeRangeId { get; set; }
 
+    /// <summary>
+    /// FK до локації (опціонально).
+    /// Використовується для фільтрації зброї при призначенні.
+    /// Якщо null — зброя не фільтрується за локацією.
+    /// </summary>
+    public int? LocationId { get; set; }
+
     // ── Навігація ──
     public DutySectionNode? Parent { get; set; }
     public List<DutySectionNode> Children { get; set; } = new();
@@ -85,4 +92,5 @@ public class DutySectionNode
     public DutyTimeRange? DutyTimeRange { get; set; }
     public DutyTemplate? DutyTemplate { get; set; }
     public DutyOrder? DutyOrder { get; set; }
+    public Location? Location { get; set; }
 }

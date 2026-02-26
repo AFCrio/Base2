@@ -6,8 +6,7 @@
 public enum NodeType
 {
     // Структурні
-    SectionHeader,             // Заголовок секції (корінь нумерації)
-    LocationSection,           // Секція з контекстом локації
+    SectionHeader,             // Заголовок секції (корінь нумерації, опціонально з локацією)
 
     // Позиції (HasWeapon/HasVehicle визначаються прапорцями вузла)
     SimplePosition,            // Одна особа

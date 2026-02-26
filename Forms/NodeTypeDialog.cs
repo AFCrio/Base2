@@ -11,8 +11,7 @@ namespace Base2.Forms
 
         private Dictionary<NodeType, string> _nodeTypeDescriptions = new()
         {
-            { NodeType.SectionHeader, "Заголовок секції (корінь нумерації)" },
-            { NodeType.LocationSection, "Секція з контекстом локації" },
+            { NodeType.SectionHeader, "Заголовок секції (корінь нумерації, можна прив'язати до локації)" },
             { NodeType.SimplePosition, "Одна особа (HasWeapon/HasVehicle за прапорцями)" },
             { NodeType.DriverPosition, "Водій з транспортом" },
             { NodeType.GroupInline, "Група, список в рядок" },

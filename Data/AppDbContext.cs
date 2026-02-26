@@ -342,6 +342,12 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.DutyTimeRangeId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // FK до Location (опціонально, для фільтрації зброї)
+            entity.HasOne(e => e.Location)
+                .WithMany(l => l.SectionNodes)
+                .HasForeignKey(e => e.LocationId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasIndex(e => e.DutyTemplateId);
             entity.HasIndex(e => e.DutyOrderId);
             entity.HasIndex(e => e.ParentDutySectionNodeId);

@@ -20,4 +20,5 @@ public class Location
 
     // Навігація
     public List<Weapon> StoredWeapons { get; set; } = new();
+    public List<DutySectionNode> SectionNodes { get; set; } = new();
 }
