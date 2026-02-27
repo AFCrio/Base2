@@ -175,7 +175,7 @@ public static class TemplateRenderer
                 var lines = section.Assignments
                     .Select((a, i) => $"{prefix}.{i + 1}. {FormatAssignmentInline(a, section)};")
                     .ToList();
-                return header + "\n" + string.Join("\n", lines);
+                return header + Environment.NewLine + string.Join(Environment.NewLine, lines);
             }
             else
             {

@@ -70,7 +70,8 @@ public class OrderService
                 HasAmmo = templateNode.HasAmmo,
                 HasVehicle = templateNode.HasVehicle,
                 MaxAssignments = templateNode.MaxAssignments,
-                TimeRangeLabel = templateNode.TimeRangeLabel
+                TimeRangeLabel = templateNode.TimeRangeLabel,
+                LocationId = templateNode.LocationId
             };
 
             _context.DutySectionNodes.Add(cloned);

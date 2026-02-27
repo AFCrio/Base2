@@ -28,7 +28,6 @@ public class AppDbContext : DbContext
 
     // Шаблони
     public DbSet<DutyTemplate> DutyTemplates { get; set; } = null!;
-    public DbSet<TemplateNode> TemplateNodes { get; set; } = null!;
     public DbSet<TemplateChangeLog> TemplateChangeLogs { get; set; } = null!;
 
     public static void EnsureDatabaseUpToDate()
@@ -430,48 +429,6 @@ public class AppDbContext : DbContext
 
             entity.HasIndex(e => e.DutyTemplateId);
             entity.HasIndex(e => new { e.DutyTemplateId, e.Version });
-        });
-
-        // =====================================================
-        // TEMPLATE NODE
-        // =====================================================
-        modelBuilder.Entity<TemplateNode>(entity =>
-        {
-            entity.HasKey(e => e.TemplateNodeId);
-
-            entity.Property(e => e.NodeType)
-                .IsRequired()
-                .HasConversion<string>();  // Зберігаємо enum як string
-
-            entity.Property(e => e.TemplateText)
-                .IsRequired()
-                .HasMaxLength(2000);
-
-            entity.Property(e => e.RequiresWeapon)
-                .IsRequired();
-
-            entity.Property(e => e.RequiresAmmo)
-                .IsRequired();
-
-            entity.Property(e => e.RequiresVehicle)
-                .IsRequired();
-
-            entity.Property(e => e.RenderMode)
-                .IsRequired()
-                .HasConversion<string>();  // Зберігаємо enum як string
-
-            entity.Property(e => e.Separator)
-                .HasMaxLength(50);
-
-            entity.Property(e => e.ItemSeparator)
-                .HasMaxLength(10);
-
-            entity.Property(e => e.Terminator)
-                .HasMaxLength(5);
-
-            // Один шаблон на один NodeType
-            entity.HasIndex(e => e.NodeType)
-                .IsUnique();
         });
     }
 }

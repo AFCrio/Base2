@@ -174,18 +174,15 @@ namespace Base2.Forms
                 .OrderBy(n => n.OrderIndex)
                 .ToList();
 
+            // O(N) побудова lookup: ParentId → дочірні вузли (ILookup підтримує null-ключі)
+            var childrenLookup = allNodes.ToLookup(n => n.ParentDutySectionNodeId);
+
             treeView1.BeginUpdate();
             treeView1.Nodes.Clear();
 
-            var rootNodes = allNodes
-                .Where(n => n.ParentDutySectionNodeId == null)
-                .OrderBy(n => n.OrderIndex)
-                .ToList();
-
-            foreach (var root in rootNodes)
+            foreach (var root in childrenLookup[null])
             {
-                var treeNode = CreateTreeNode(root, allNodes);
-                treeView1.Nodes.Add(treeNode);
+                treeView1.Nodes.Add(CreateTreeNode(root, childrenLookup));
             }
 
             treeView1.ExpandAll();
@@ -194,7 +191,7 @@ namespace Base2.Forms
             UpdateStatusLabel(allNodes);
         }
 
-        private TreeNode CreateTreeNode(DutySectionNode section, List<DutySectionNode> allNodes)
+        private TreeNode CreateTreeNode(DutySectionNode section, ILookup<int?, DutySectionNode> childrenLookup)
         {
             string text = GetNodeDisplayText(section);
 
@@ -250,14 +247,9 @@ namespace Base2.Forms
             }
 
             // Реальні дочірні вузли з БД
-            var children = allNodes
-                .Where(n => n.ParentDutySectionNodeId == section.DutySectionNodeId)
-                .OrderBy(n => n.OrderIndex)
-                .ToList();
-
-            foreach (var child in children)
+            foreach (var child in childrenLookup[section.DutySectionNodeId])
             {
-                node.Nodes.Add(CreateTreeNode(child, allNodes));
+                node.Nodes.Add(CreateTreeNode(child, childrenLookup));
             }
 
             return node;
