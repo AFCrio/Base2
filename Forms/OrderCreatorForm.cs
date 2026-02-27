@@ -226,7 +226,30 @@ namespace Base2.Forms
                 node.ForeColor = Color.DarkBlue;
             }
 
-            // Дочірні
+            // Віртуальні дочірні вузли для груп з призначеннями (тільки UI)
+            if (section.NodeType is NodeType.GroupInline or NodeType.GroupNested
+                && section.Assignments.Count > 0)
+            {
+                int idx = 0;
+                foreach (var assignment in section.Assignments)
+                {
+                    idx++;
+                    var personText = TemplateRenderer.FormatAssignmentInline(assignment, section);
+
+                    // GroupNested — з нумерацією підпунктів
+                    if (section.NodeType == NodeType.GroupNested && !string.IsNullOrEmpty(section.Title))
+                        personText = $"{section.Title}.{idx}. {personText};";
+
+                    var childNode = new TreeNode(personText)
+                    {
+                        Tag = section,
+                        ForeColor = Color.DarkGreen
+                    };
+                    node.Nodes.Add(childNode);
+                }
+            }
+
+            // Реальні дочірні вузли з БД
             var children = allNodes
                 .Where(n => n.ParentDutySectionNodeId == section.DutySectionNodeId)
                 .OrderBy(n => n.OrderIndex)
@@ -239,7 +262,6 @@ namespace Base2.Forms
 
             return node;
         }
-
         private string GetNodeDisplayText(DutySectionNode section)
         {
             var parts = new List<string>();
@@ -249,10 +271,23 @@ namespace Base2.Forms
 
             if (!string.IsNullOrEmpty(section.DutyPositionTitle))
             {
-                // Рендеримо шаблон з усіма контекстами
-                var firstAssignment = section.Assignments.FirstOrDefault();
-                var rendered = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order, section);
-                parts.Add(rendered);
+                if (section.NodeType is NodeType.GroupInline or NodeType.GroupNested)
+                {
+                    // Тільки заголовок шаблону — особи будуть у дочірніх вузлах
+                    var header = TemplateRenderer.Render(
+                        section.DutyPositionTitle,
+                        assignment: null,
+                        timeRange: section.DutyTimeRange,
+                        order: _order,
+                        node: null);
+                    parts.Add(header);
+                }
+                else
+                {
+                    var rendered = TemplateRenderer.RenderNode(section, _order);
+                    if (rendered != null)
+                        parts.Add(rendered);
+                }
             }
             else
             {
@@ -260,7 +295,8 @@ namespace Base2.Forms
             }
 
             // Кількість призначень для груп
-            if (section.MaxAssignments != 1 && section.Assignments.Count > 0)
+            if ((section.NodeType == NodeType.GroupInline || section.NodeType == NodeType.GroupNested)
+                && section.Assignments.Count > 0)
             {
                 parts.Add($"({section.Assignments.Count} осіб)");
             }
@@ -425,11 +461,10 @@ namespace Base2.Forms
                 ? $"Прапорці: {string.Join(", ", flags)}"
                 : "Прапорці: (немає)";
 
-            // Рендеринг шаблону
+            // ── Рендеринг для txtRenderedText ──
             if (!string.IsNullOrEmpty(section.DutyPositionTitle))
             {
-                var firstAssignment = section.Assignments.FirstOrDefault();
-                txtRenderedText.Text = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order, section);
+                txtRenderedText.Text = TemplateRenderer.RenderNode(section, _order) ?? "";
             }
             else
             {

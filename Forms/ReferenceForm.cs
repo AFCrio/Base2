@@ -405,6 +405,36 @@ public class ReferenceForm : Form
         var loc = _context.Locations.Find(id);
         if (loc == null) return;
 
+        var reasons = new List<string>();
+
+        // Зброя на цій локації
+        var weapons = _context.Weapons
+            .Where(w => w.StoredInLocationId == id)
+            .Select(w => $"• {w.WeaponType} №{w.WeaponNumber}")
+            .ToList();
+        if (weapons.Count > 0)
+            reasons.Add($"Зброя на локації:\n{string.Join("\n", weapons)}");
+
+        // Вузли наказів, що посилаються на цю локацію
+        var orders = _context.DutySectionNodes
+            .Where(n => n.LocationId == id && n.DutyOrderId != null)
+            .Select(n => n.DutyOrder!)
+            .Distinct()
+            .Select(o => $"• №{o.OrderNumber} від {o.OrderDate}")
+            .ToList();
+        if (orders.Count > 0)
+            reasons.Add($"Використовується в наказах:\n{string.Join("\n", orders)}");
+
+        if (reasons.Count > 0)
+        {
+            MessageBox.Show(
+                $"Неможливо видалити локацію «{loc.LocationName}».\n\n{string.Join("\n\n", reasons)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
         if (Confirm($"Видалити локацію «{loc.LocationName}»?"))
         {
             _context.Locations.Remove(loc);
@@ -457,6 +487,26 @@ public class ReferenceForm : Form
         var person = _context.People.Find(id);
         if (person == null) return;
 
+        // Перевірка призначень у наказах
+        var orders = _context.DutyAssignments
+            .Where(a => a.PersonId == id)
+            .Select(a => a.DutySectionNode.DutyOrder!)
+            .Distinct()
+            .Select(o => new { o.OrderNumber, o.OrderDate })
+            .ToList();
+
+        if (orders.Count > 0)
+        {
+            var lines = orders.Select(o => $"• №{o.OrderNumber} від {o.OrderDate}");
+            MessageBox.Show(
+                $"Неможливо видалити «{person.LastName} {person.Initials}».\n" +
+                $"Особа призначена в наказах:\n\n{string.Join("\n", lines)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
         if (Confirm($"Видалити «{person.LastName} {person.Initials}»?"))
         {
             _context.People.Remove(person);
@@ -500,8 +550,39 @@ public class ReferenceForm : Form
     private void DeleteWeapon()
     {
         if (GetSelectedId(dgvWeapons, "WeaponId") is not int id) return;
-        var weapon = _context.Weapons.Find(id);
+        var weapon = _context.Weapons
+            .Include(w => w.AssignedToPerson)
+            .FirstOrDefault(w => w.WeaponId == id);
         if (weapon == null) return;
+
+        var reasons = new List<string>();
+
+        // Закріплена за особою
+        if (weapon.AssignedToPerson != null)
+        {
+            var p = weapon.AssignedToPerson;
+            reasons.Add($"Закріплена за: {p.LastName} {p.Initials}");
+        }
+
+        // Призначення в наказах
+        var orders = _context.DutyAssignments
+            .Where(a => a.WeaponId == id)
+            .Select(a => a.DutySectionNode.DutyOrder!)
+            .Distinct()
+            .Select(o => $"• №{o.OrderNumber} від {o.OrderDate}")
+            .ToList();
+        if (orders.Count > 0)
+            reasons.Add($"Використовується в наказах:\n{string.Join("\n", orders)}");
+
+        if (reasons.Count > 0)
+        {
+            MessageBox.Show(
+                $"Неможливо видалити «{weapon.WeaponType} №{weapon.WeaponNumber}».\n\n{string.Join("\n\n", reasons)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
 
         if (Confirm($"Видалити зброю «{weapon.WeaponType} №{weapon.WeaponNumber}»?"))
         {
@@ -561,6 +642,25 @@ public class ReferenceForm : Form
         if (GetSelectedId(dgvVehicles, "VehicleId") is not int id) return;
         var vehicle = _context.Vehicles.Find(id);
         if (vehicle == null) return;
+
+        // Призначення в наказах
+        var orders = _context.DutyAssignments
+            .Where(a => a.VehicleId == id)
+            .Select(a => a.DutySectionNode.DutyOrder!)
+            .Distinct()
+            .Select(o => $"• №{o.OrderNumber} від {o.OrderDate}")
+            .ToList();
+
+        if (orders.Count > 0)
+        {
+            MessageBox.Show(
+                $"Неможливо видалити «{vehicle.VehicleName} {vehicle.VehicleNumber}».\n" +
+                $"Транспорт використовується в наказах:\n\n{string.Join("\n", orders)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
 
         if (Confirm($"Видалити «{vehicle.VehicleName} {vehicle.VehicleNumber}»?"))
         {
@@ -654,6 +754,23 @@ public class ReferenceForm : Form
         var rank = _context.Ranks.Find(id);
         if (rank == null) return;
 
+        // Особи з цим званням
+        var people = _context.People
+            .Where(p => p.RankId == id)
+            .Select(p => $"• {p.LastName} {p.Initials}")
+            .ToList();
+
+        if (people.Count > 0)
+        {
+            MessageBox.Show(
+                $"Неможливо видалити звання «{rank.RankName}».\n" +
+                $"Звання присвоєно особам:\n\n{string.Join("\n", people)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
         if (Confirm($"Видалити звання «{rank.RankName}»?"))
         {
             _context.Ranks.Remove(rank);
@@ -738,6 +855,36 @@ public class ReferenceForm : Form
         if (GetSelectedId(dgvPositions, "PositionId") is not int id) return;
         var pos = _context.Positions.Find(id);
         if (pos == null) return;
+
+        var reasons = new List<string>();
+
+        // Особи з цією посадою
+        var people = _context.People
+            .Where(p => p.PositionId == id)
+            .Select(p => $"• {p.LastName} {p.Initials}")
+            .ToList();
+        if (people.Count > 0)
+            reasons.Add($"Посаду займають:\n{string.Join("\n", people)}");
+
+        // Призначення в наказах (через осіб з цією посадою)
+        var orders = _context.DutyAssignments
+            .Where(a => a.Person.PositionId == id)
+            .Select(a => a.DutySectionNode.DutyOrder!)
+            .Distinct()
+            .Select(o => $"• №{o.OrderNumber} від {o.OrderDate}")
+            .ToList();
+        if (orders.Count > 0)
+            reasons.Add($"Особи з цією посадою в наказах:\n{string.Join("\n", orders)}");
+
+        if (reasons.Count > 0)
+        {
+            MessageBox.Show(
+                $"Неможливо видалити посаду «{pos.PositionName}».\n\n{string.Join("\n\n", reasons)}",
+                "Видалення неможливе",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
 
         if (Confirm($"Видалити посаду «{pos.PositionName}»?"))
         {

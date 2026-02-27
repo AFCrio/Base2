@@ -1,6 +1,7 @@
 using Base2.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 
 namespace Base2.Services;
@@ -142,5 +143,78 @@ public static class TemplateRenderer
 
         // з 19 по 20 лютого 2026 року
         return $"з {sd} по {ed} {MonthsGenitive[em]} {ey} року";
+    }
+
+    /// <summary>
+    /// Рендерить повний текст вузла (для дерева, інфо-панелі, генерації документа).
+    /// Обробляє GroupInline (заголовок + список осіб) та звичайні типи.
+    /// Повертає null, якщо DutyPositionTitle порожній.
+    /// </summary>
+    public static string? RenderNode(
+        DutySectionNode section,
+        DutyOrder? order = null)
+    {
+        if (string.IsNullOrEmpty(section.DutyPositionTitle))
+            return null;
+
+        if (section.NodeType is NodeType.GroupInline or NodeType.GroupNested
+            && section.Assignments.Count > 0)
+        {
+            // Заголовок групи (без assignment, щоб плейсхолдери осіб → "___")
+            var header = Render(
+                section.DutyPositionTitle,
+                assignment: null,
+                timeRange: section.DutyTimeRange,
+                order: order,
+                node: null);
+
+            if (section.NodeType == NodeType.GroupNested)
+            {
+                // Нумеровані підпункти: "1.9.1. солдат ПЕТРЕНКО П.П.;"
+                var prefix = section.Title ?? "0";
+                var lines = section.Assignments
+                    .Select((a, i) => $"{prefix}.{i + 1}. {FormatAssignmentInline(a, section)};")
+                    .ToList();
+                return header + "\n" + string.Join("\n", lines);
+            }
+            else
+            {
+                // Inline: "солдат ПЕТРЕНКО П.П.; солдат ІВАНЕНКО І.І."
+                var personStrings = section.Assignments
+                    .Select(a => FormatAssignmentInline(a, section))
+                    .ToList();
+                return header + " " + string.Join("; ", personStrings) + ".";
+            }
+        }
+
+        // Звичайний рендеринг (SimplePosition, DriverPosition тощо)
+        var firstAssignment = section.Assignments.FirstOrDefault();
+        return Render(
+            section.DutyPositionTitle,
+            assignment: firstAssignment,
+            timeRange: section.DutyTimeRange,
+            order: order,
+            node: section);
+    }
+
+    /// <summary>
+    /// Форматує одне призначення в inline-рядок (для GroupInline).
+    /// Формат: "солдат Петренко П.П. озброїти АК-74 №174507, видати набої 5,45 мм – 120 шт., транспорт УАЗ АА1234ВВ"
+    /// </summary>
+    public static string FormatAssignmentInline(DutyAssignment assignment, DutySectionNode section)
+    {
+        var person = assignment.Person;
+        var text = $"{person.Rank?.RankName} {person.LastName} {person.Initials}";
+
+        if (section.HasWeapon && assignment.Weapon != null)
+            text += $" озброїти {assignment.Weapon.WeaponType} №{assignment.Weapon.WeaponNumber}";
+
+        if (section.HasAmmo && assignment.AmmoCount.HasValue)
+            text += $", видати набої {assignment.AmmoType} – {assignment.AmmoCount} шт.";
+
+        if (section.HasVehicle && assignment.Vehicle != null)
+            text += $", транспорт {assignment.Vehicle.VehicleName} {assignment.Vehicle.VehicleNumber}";
+
+        return text;
     }
 }

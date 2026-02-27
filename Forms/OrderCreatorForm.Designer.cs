@@ -361,7 +361,7 @@ namespace Base2.Forms
             splitRight.Panel2.Controls.Add(dataGridView1);
             splitRight.Panel2.Controls.Add(panelAssignmentHeader);
             splitRight.Size = new Size(496, 610);
-            splitRight.SplitterDistance = 433;
+            splitRight.SplitterDistance = 309;
             splitRight.TabIndex = 0;
             // 
             // grpNodeInfo
@@ -375,7 +375,7 @@ namespace Base2.Forms
             grpNodeInfo.Location = new Point(0, 0);
             grpNodeInfo.Name = "grpNodeInfo";
             grpNodeInfo.Padding = new Padding(10, 6, 10, 6);
-            grpNodeInfo.Size = new Size(496, 433);
+            grpNodeInfo.Size = new Size(496, 309);
             grpNodeInfo.TabIndex = 0;
             grpNodeInfo.TabStop = false;
             grpNodeInfo.Text = "Інформація про вузол";
@@ -439,7 +439,7 @@ namespace Base2.Forms
             dataGridView1.Name = "dataGridView1";
             dataGridView1.ReadOnly = true;
             dataGridView1.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridView1.Size = new Size(496, 143);
+            dataGridView1.Size = new Size(496, 267);
             dataGridView1.TabIndex = 0;
             // 
             // panelAssignmentHeader
