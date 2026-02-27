@@ -347,6 +347,15 @@ namespace Base2.Forms
 
         #endregion
 
+        private void btnReferences_Click(object sender, EventArgs e)
+        {
+            using var form = new ReferenceForm();
+            form.ShowDialog();
+
+            // Оновити дані після змін у довідниках
+            _context.ChangeTracker.Clear();
+        }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             _context.Dispose();

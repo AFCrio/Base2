@@ -1,5 +1,6 @@
 using Base2.Models;
 using System;
+using System.Collections.Generic;
 using System.Text.RegularExpressions;
 
 namespace Base2.Services;
@@ -20,13 +21,16 @@ public static class TemplateRenderer
     /// <summary>
     /// Замінює плейсхолдери в DutyPositionTitle на реальні дані.
     /// Порядок підстановки: наказ → часовий діапазон → особові дані.
+    /// Якщо вузол має прапорці (HasWeapon, HasAmmo, HasVehicle), але шаблон
+    /// не містить відповідних плейсхолдерів — дані дописуються автоматично.
     /// Незамінені плейсхолдери стають "___".
     /// </summary>
     public static string Render(
         string template,
         DutyAssignment? assignment = null,
         DutyTimeRange? timeRange = null,
-        DutyOrder? order = null)
+        DutyOrder? order = null,
+        DutySectionNode? node = null)
     {
         var result = template;
 
@@ -69,6 +73,45 @@ public static class TemplateRenderer
 
         // Незамінені плейсхолдери → "___"
         result = _placeholderRegex.Replace(result, "___");
+
+        // ── Автодоповнення за прапорцями вузла ──
+        if (node != null && assignment != null)
+        {
+            var extras = new List<string>();
+
+            // Зброя
+            if (!template.Contains("{WeaponType}") && !template.Contains("{WeaponNumber}"))
+            {
+                if (node.HasWeapon)
+                {
+                    var w = assignment.Weapon;
+                    if (w != null)
+                        extras.Add($"озброїти {w.WeaponType} №{w.WeaponNumber}");
+                }
+                else
+                {
+                    extras.Add("без зброї");
+                }
+            }
+
+            // Набої
+            if (node.HasAmmo && !template.Contains("{AmmoType}") && !template.Contains("{AmmoCount}"))
+            {
+                if (assignment.AmmoCount.HasValue)
+                    extras.Add($"видати набої {assignment.AmmoType} – {assignment.AmmoCount} шт.");
+            }
+
+            // Транспорт
+            if (node.HasVehicle && !template.Contains("{VehicleName}") && !template.Contains("{VehicleNumber}"))
+            {
+                var v = assignment.Vehicle;
+                if (v != null)
+                    extras.Add($"транспорт {v.VehicleName} {v.VehicleNumber}");
+            }
+
+            if (extras.Count > 0)
+                result += ", " + string.Join(", ", extras) + ";";
+        }
 
         return result;
     }

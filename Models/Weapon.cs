@@ -22,6 +22,12 @@ public class Weapon
     /// </summary>
     public int? StoredInLocationId { get; set; }
 
+    /// <summary>
+    /// За ким закріплена (опціонально)
+    /// </summary>
+    public int? AssignedToPersonId { get; set; }
+
     // Навігація
     public Location? StoredInLocation { get; set; }
+    public Person? AssignedToPerson { get; set; }
 }

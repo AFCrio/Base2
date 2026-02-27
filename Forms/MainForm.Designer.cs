@@ -38,6 +38,7 @@ namespace Base2.Forms
             btnEditTemplate = new Button();
             btnNewTemplate = new Button();
             btnDeleteTemplate = new Button();
+            btnReferences = new Button();
             panelOrders = new Panel();
             labelOrders = new Label();
             btnNewOrder = new Button();
@@ -60,6 +61,7 @@ namespace Base2.Forms
             panelTemplate.Controls.Add(btnEditTemplate);
             panelTemplate.Controls.Add(btnNewTemplate);
             panelTemplate.Controls.Add(btnDeleteTemplate);
+            panelTemplate.Controls.Add(btnReferences);
             panelTemplate.Dock = DockStyle.Top;
             panelTemplate.Location = new Point(0, 0);
             panelTemplate.Name = "panelTemplate";
@@ -123,6 +125,18 @@ namespace Base2.Forms
             btnDeleteTemplate.Text = "🗑️ Видалити шаблон";
             btnDeleteTemplate.UseVisualStyleBackColor = false;
             btnDeleteTemplate.Click += btnDeleteTemplate_Click;
+            // 
+            // btnReferences
+            // 
+            btnReferences.BackColor = Color.Lavender;
+            btnReferences.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnReferences.Location = new Point(1020, 13);
+            btnReferences.Name = "btnReferences";
+            btnReferences.Size = new Size(160, 32);
+            btnReferences.TabIndex = 5;
+            btnReferences.Text = "📖 Довідники";
+            btnReferences.UseVisualStyleBackColor = false;
+            btnReferences.Click += btnReferences_Click;
             // 
             // panelOrders
             // 
@@ -263,5 +277,6 @@ namespace Base2.Forms
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Label labelOutdated;
         private System.Windows.Forms.DataGridView dataGridViewOrders;
+        private System.Windows.Forms.Button btnReferences;
     }
 }

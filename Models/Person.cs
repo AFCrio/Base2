@@ -36,4 +36,5 @@ public class Person
     // Навігація
     public Rank Rank { get; set; } = null!;
     public Position Position { get; set; } = null!;
+    public List<Weapon> AssignedWeapons { get; set; } = new();
 }

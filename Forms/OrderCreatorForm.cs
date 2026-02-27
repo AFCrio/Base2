@@ -251,7 +251,7 @@ namespace Base2.Forms
             {
                 // Рендеримо шаблон з усіма контекстами
                 var firstAssignment = section.Assignments.FirstOrDefault();
-                var rendered = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order);
+                var rendered = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order, section);
                 parts.Add(rendered);
             }
             else
@@ -429,7 +429,7 @@ namespace Base2.Forms
             if (!string.IsNullOrEmpty(section.DutyPositionTitle))
             {
                 var firstAssignment = section.Assignments.FirstOrDefault();
-                txtRenderedText.Text = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order);
+                txtRenderedText.Text = TemplateRenderer.Render(section.DutyPositionTitle, firstAssignment, section.DutyTimeRange, _order, section);
             }
             else
             {
@@ -526,29 +526,13 @@ namespace Base2.Forms
                 return;
             }
 
-            using var dialog = new AssignmentDialog(_context);
+            using var form = new AssignmentForm(_context, _order, _selectedNode);
 
-            // Автоматично встановлюємо прапорці на основі вузла
-            if (_selectedNode.HasWeapon) dialog.PresetWeapon(true);
-            if (_selectedNode.HasAmmo) dialog.PresetAmmo(true);
-            if (_selectedNode.HasVehicle) dialog.PresetVehicle(true);
-
-            if (dialog.ShowDialog() == DialogResult.OK && dialog.SelectedPerson != null)
+            if (form.ShowDialog() == DialogResult.OK && form.Result != null)
             {
-                var assignment = new DutyAssignment
-                {
-                    DutySectionNodeId = _selectedNode.DutySectionNodeId,
-                    PersonId = dialog.SelectedPerson.PersonId,
-                    WeaponId = _selectedNode.HasWeapon ? dialog.SelectedWeapon?.WeaponId : null,
-                    VehicleId = _selectedNode.HasVehicle ? dialog.SelectedVehicle?.VehicleId : null,
-                    AmmoCount = _selectedNode.HasAmmo ? dialog.AmmoCount : null,
-                    AmmoType = _selectedNode.HasAmmo ? dialog.AmmoType : null
-                };
-
-                _context.DutyAssignments.Add(assignment);
+                _context.DutyAssignments.Add(form.Result);
                 _context.SaveChanges();
 
-                // Оновлюємо
                 ReloadSelectedNode();
             }
         }

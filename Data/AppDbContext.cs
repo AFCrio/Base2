@@ -148,6 +148,12 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.StoredInLocationId)
                 .OnDelete(DeleteBehavior.SetNull);
 
+            // FK до Person (закріплення)
+            entity.HasOne(e => e.AssignedToPerson)
+                .WithMany(p => p.AssignedWeapons)
+                .HasForeignKey(e => e.AssignedToPersonId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             entity.HasIndex(e => e.WeaponNumber)
                 .IsUnique();
         });
