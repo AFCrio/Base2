@@ -26,13 +26,4 @@ public enum NodeType
     FireGroupInline            // Конкретна вогнева група inline
 }
 
-/// <summary>
-/// Режим рендерингу вузла
-/// </summary>
-public enum RenderMode
-{
-    SingleLine,     // Один рядок: "1.1. Текст;"
-    Inline,         // "1.6. Група в складі: A; B; C."
-    Nested,         // "1.9. Група:\n  1.9.1. A;\n  1.9.2. B;"
-    Header          // Просто заголовок
-}
+

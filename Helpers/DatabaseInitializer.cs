@@ -13,7 +13,7 @@ public static class DatabaseInitializer
     /// </summary>
     public static void Initialize()
     {
-        using var context = new AppDbContext();
+        var context = AppServices.DbContext;
 
         try
         {
@@ -35,8 +35,7 @@ public static class DatabaseInitializer
     /// </summary>
     public static bool DatabaseExists()
     {
-        using var context = new AppDbContext();
-        return context.Database.CanConnect();
+        return AppServices.DbContext.Database.CanConnect();
     }
 
     /// <summary>

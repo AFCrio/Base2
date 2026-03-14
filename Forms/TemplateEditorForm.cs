@@ -33,7 +33,7 @@ public partial class TemplateEditorForm : Form
     public TemplateEditorForm()
     {
         InitializeComponent();
-        _context = new AppDbContext();
+        _context = AppServices.DbContext;
     }
 
     public TemplateEditorForm(int templateId) : this()
@@ -942,7 +942,7 @@ public partial class TemplateEditorForm : Form
 
     protected override void OnFormClosing(FormClosingEventArgs e)
     {
-        _context?.Dispose();
+        _context.ChangeTracker.Clear();
         base.OnFormClosing(e);
     }
 }

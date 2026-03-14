@@ -14,6 +14,10 @@ namespace Base2
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
+
+            // Ініціалізація DI-контейнера
+            AppServices.Initialize();
+
             // Ініціалізація БД при старті
             try
             {
@@ -29,7 +33,15 @@ namespace Base2
                 );
                 return;
             }
-            Application.Run(new MainForm());
+
+            try
+            {
+                Application.Run(new MainForm());
+            }
+            finally
+            {
+                AppServices.Dispose();
+            }
         }
     }
 }

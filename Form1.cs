@@ -16,11 +16,9 @@ namespace Base2
 
         private void button1_Click(object sender, EventArgs e)
         {
-            using (var context = new AppDbContext())
-            {
-                AssignmentDialog assignmentDialog = new AssignmentDialog(context);
-                assignmentDialog.ShowDialog();
-            }
+            var context = AppServices.DbContext;
+            AssignmentDialog assignmentDialog = new AssignmentDialog(context);
+            assignmentDialog.ShowDialog();
         }
 
         private void bOrderForm_Click(object sender, EventArgs e)

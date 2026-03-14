@@ -24,6 +24,10 @@ public class OrderService
     public DutyOrder CreateOrderFromTemplate(int templateId, string orderNumber, DateOnly orderDate,
         DateTime start, DateTime end, string commanderInfo)
     {
+        using var transaction = _context.Database.BeginTransaction();
+
+        try
+        {
         var template = _context.DutyTemplates
             .Include(t => t.Sections.Where(s => s.DutyTemplateId == templateId))
             .FirstOrDefault(t => t.DutyTemplateId == templateId)
@@ -117,7 +121,14 @@ public class OrderService
         // Генеруємо Title
         GenerateTitles(order.DutyOrderId);
 
+        transaction.Commit();
         return order;
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
     }
 
     /// <summary>

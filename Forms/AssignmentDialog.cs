@@ -1,5 +1,4 @@
-﻿
-using Base2.Data;
+﻿using Base2.Data;
 using Base2.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -44,7 +43,8 @@ namespace Base2.Forms
 
             // Завантажуємо зброю
             var weapons = _context.Weapons
-                .OrderBy(w => w.WeaponType)
+                .OrderBy(w => w.LastUsedDate)
+                .ThenBy(w => w.WeaponType)
                 .ThenBy(w => w.WeaponNumber)
                 .ToList();
 
@@ -53,7 +53,7 @@ namespace Base2.Forms
             comboBoxWeapon.DataSource = weapons.Select(w => new
             {
                 w.WeaponId,
-                DisplayText = $"{w.WeaponType} №{w.WeaponNumber}"
+                DisplayText = $"{w.WeaponType} №{w.WeaponNumber} ({w.LastUsedDate:dd.MM.yyyy})"
             }).ToList();
 
             // Завантажуємо транспорт

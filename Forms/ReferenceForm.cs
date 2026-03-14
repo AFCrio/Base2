@@ -17,6 +17,7 @@ public class ReferenceForm : Form
 {
     private AppDbContext _context = null!;
     private TabControl tabControl = null!;
+    private readonly int _initialTabIndex;
 
     // ── Локації ──
     private DataGridView dgvLocations = null!;
@@ -42,11 +43,15 @@ public class ReferenceForm : Form
     private DataGridView dgvPositions = null!;
     private TextBox txtPositionFilter = null!;
 
-    public ReferenceForm()
+    public ReferenceForm(int initialTabIndex = 0)
     {
-        _context = new AppDbContext();
+        _context = AppServices.DbContext;
+        _initialTabIndex = initialTabIndex;
         BuildUI();
         LoadAll();
+
+        if (_initialTabIndex >= 0 && _initialTabIndex < tabControl.TabPages.Count)
+            tabControl.SelectedIndex = _initialTabIndex;
     }
 
     // ═══════════════════════════════════════════════════
@@ -247,6 +252,7 @@ public class ReferenceForm : Form
 
     private void LoadAll()
     {
+        _context.ChangeTracker.Clear();
         LoadLocations();
         LoadPeople();
         LoadWeapons();
@@ -257,6 +263,7 @@ public class ReferenceForm : Form
 
     private void LoadLocations()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtLocationFilter?.Text?.Trim() ?? "";
         var query = _context.Locations.AsQueryable();
 
@@ -280,6 +287,7 @@ public class ReferenceForm : Form
 
     private void LoadPeople()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtPeopleFilter?.Text?.Trim() ?? "";
         var query = _context.People
             .Include(p => p.Rank)
@@ -311,6 +319,7 @@ public class ReferenceForm : Form
 
     private void LoadWeapons()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtWeaponFilter?.Text?.Trim() ?? "";
         var query = _context.Weapons
             .Include(w => w.StoredInLocation)
@@ -328,6 +337,7 @@ public class ReferenceForm : Form
                 w.WeaponId,
                 Тип = w.WeaponType,
                 Номер = w.WeaponNumber,
+                ОстаннєВикористання = w.LastUsedDate.ToString("dd.MM.yyyy"),
                 Локація = w.StoredInLocation != null ? w.StoredInLocation.LocationName : "",
                 Закріплена = w.AssignedToPerson != null
                     ? w.AssignedToPerson.LastName + " " + (w.AssignedToPerson.Initials ?? "")
@@ -341,6 +351,7 @@ public class ReferenceForm : Form
 
     private void LoadVehicles()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtVehicleFilter?.Text?.Trim() ?? "";
         var query = _context.Vehicles.AsQueryable();
 
@@ -696,6 +707,7 @@ public class ReferenceForm : Form
 
     private void LoadRanks()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtRankFilter?.Text?.Trim() ?? "";
         var query = _context.Ranks.AsQueryable();
 
@@ -805,6 +817,7 @@ public class ReferenceForm : Form
 
     private void LoadPositions()
     {
+        _context.ChangeTracker.Clear();
         var filter = txtPositionFilter?.Text?.Trim() ?? "";
         var query = _context.Positions.AsQueryable();
 
@@ -924,7 +937,7 @@ public class ReferenceForm : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        _context?.Dispose();
+        _context.ChangeTracker.Clear();
         base.OnFormClosed(e);
     }
 }
@@ -1060,19 +1073,31 @@ public class PersonEditDialog : Form
 
         // ── Звання, Посада ──
         AddLabel("Звання:", ref y);
-        cmbRank = AddComboBox(ref y, w);
-        var ranks = _context.Ranks.OrderBy(r => r.RankLevel).ToList();
-        cmbRank.DataSource = ranks;
-        cmbRank.DisplayMember = "RankName";
-        cmbRank.ValueMember = "RankId";
+        cmbRank = AddComboBox(ref y, w - 42);
+        var btnRanks = new Button
+        {
+            Text = "📋",
+            Location = new Point(14 + w - 36, y - 32),
+            Size = new Size(36, 28)
+        };
+        btnRanks.Click += (_, _) => OpenReferenceTabAndReload(4, ReloadRanks);
+        Controls.Add(btnRanks);
+
+        ReloadRanks();
         if (_existing != null) cmbRank.SelectedValue = _existing.RankId;
 
         AddLabel("Посада:", ref y);
-        cmbPosition = AddComboBox(ref y, w);
-        var positions = _context.Positions.OrderBy(p => p.PositionName).ToList();
-        cmbPosition.DataSource = positions;
-        cmbPosition.DisplayMember = "PositionName";
-        cmbPosition.ValueMember = "PositionId";
+        cmbPosition = AddComboBox(ref y, w - 42);
+        var btnPositions = new Button
+        {
+            Text = "📋",
+            Location = new Point(14 + w - 36, y - 32),
+            Size = new Size(36, 28)
+        };
+        btnPositions.Click += (_, _) => OpenReferenceTabAndReload(5, ReloadPositions);
+        Controls.Add(btnPositions);
+
+        ReloadPositions();
         if (_existing != null) cmbPosition.SelectedValue = _existing.PositionId;
 
         y += 6;
@@ -1180,7 +1205,8 @@ public class PersonEditDialog : Form
         var freeWeapons = _context.Weapons
             .Where(w => w.AssignedToPersonId == null
                      || (_existing != null && w.AssignedToPersonId == _existing.PersonId))
-            .OrderBy(w => w.WeaponType)
+            .OrderBy(w => w.LastUsedDate)
+            .ThenBy(w => w.WeaponType)
             .ThenBy(w => w.WeaponNumber)
             .ToList();
 
@@ -1189,7 +1215,7 @@ public class PersonEditDialog : Form
         cmbWeapon.DataSource = freeWeapons.Select(w => new
         {
             w.WeaponId,
-            Display = $"{w.WeaponType} №{w.WeaponNumber}"
+            Display = $"{w.WeaponType} №{w.WeaponNumber} ({w.LastUsedDate:dd.MM.yyyy})"
         }).ToList();
 
         // Перевірити чи є закріплена зброя
@@ -1197,6 +1223,9 @@ public class PersonEditDialog : Form
         {
             var assignedList = _context.Weapons
                 .Where(w => w.AssignedToPersonId == _existing.PersonId)
+                .OrderBy(w => w.LastUsedDate)
+                .ThenBy(w => w.WeaponType)
+                .ThenBy(w => w.WeaponNumber)
                 .ToList();
             if (assignedList.Count > 0)
             {
@@ -1218,6 +1247,45 @@ public class PersonEditDialog : Form
                 }
             }
         }
+    }
+
+    private void ReloadRanks()
+    {
+        var selectedId = cmbRank.SelectedValue as int?;
+        var ranks = _context.Ranks.OrderBy(r => r.RankLevel).ToList();
+
+        cmbRank.DataSource = ranks;
+        cmbRank.DisplayMember = "RankName";
+        cmbRank.ValueMember = "RankId";
+
+        if (selectedId.HasValue && ranks.Any(r => r.RankId == selectedId.Value))
+            cmbRank.SelectedValue = selectedId.Value;
+        else if (cmbRank.Items.Count > 0)
+            cmbRank.SelectedIndex = 0;
+    }
+
+    private void ReloadPositions()
+    {
+        var selectedId = cmbPosition.SelectedValue as int?;
+        var positions = _context.Positions.OrderBy(p => p.PositionName).ToList();
+
+        cmbPosition.DataSource = positions;
+        cmbPosition.DisplayMember = "PositionName";
+        cmbPosition.ValueMember = "PositionId";
+
+        if (selectedId.HasValue && positions.Any(p => p.PositionId == selectedId.Value))
+            cmbPosition.SelectedValue = selectedId.Value;
+        else if (cmbPosition.Items.Count > 0)
+            cmbPosition.SelectedIndex = 0;
+    }
+
+    private void OpenReferenceTabAndReload(int tabIndex, Action reloadAction)
+    {
+        using var refs = new ReferenceForm(tabIndex);
+        refs.ShowDialog(this);
+
+        _context.ChangeTracker.Clear();
+        reloadAction();
     }
 
     private void AutoFillInitials()
@@ -1405,6 +1473,7 @@ public class WeaponEditDialog : Form
 
     private TextBox txtType = null!;
     private TextBox txtNumber = null!;
+    private DateTimePicker dtpLastUsedDate = null!;
 
     private RadioButton rbNone = null!;
     private RadioButton rbLocation = null!;
@@ -1445,6 +1514,21 @@ public class WeaponEditDialog : Form
         y += lblNum.PreferredHeight + 2;
         txtNumber = new TextBox { Text = _existing?.WeaponNumber ?? "", Location = new Point(14, y), Width = w, Font = new Font("Consolas", 10F) };
         Controls.Add(txtNumber);
+        y += 30;
+
+        var lblLastUsed = new Label { Text = "Останнє використання:", Location = new Point(14, y), AutoSize = true };
+        Controls.Add(lblLastUsed);
+        y += lblLastUsed.PreferredHeight + 2;
+        dtpLastUsedDate = new DateTimePicker
+        {
+            Location = new Point(14, y),
+            Width = w,
+            Format = DateTimePickerFormat.Short,
+            Value = _existing != null
+                ? _existing.LastUsedDate.ToDateTime(TimeOnly.MinValue)
+                : new DateOnly(2026, 1, 1).ToDateTime(TimeOnly.MinValue)
+        };
+        Controls.Add(dtpLastUsedDate);
         y += 34;
 
         // ── Призначення ──
@@ -1518,7 +1602,18 @@ public class WeaponEditDialog : Form
         cmbPerson.Format += (_, args) =>
         {
             if (args.ListItem is Person p)
-                args.Value = $"{p.Rank?.RankName} {p.LastName} {p.Initials}";
+            {
+                var pib = string.Join(" ", new[] { p.LastName, p.FirstName, p.MiddleName }
+                    .Where(x => !string.IsNullOrWhiteSpace(x)));
+
+                if (string.IsNullOrWhiteSpace(pib))
+                    pib = $"{p.LastName} {p.Initials}".Trim();
+
+                var rank = p.Rank?.RankName;
+                args.Value = string.IsNullOrWhiteSpace(rank)
+                    ? pib
+                    : $"{pib} ({rank})";
+            }
         };
         cmbPerson.FormattingEnabled = true;
         if (cmbPerson.Items.Count > 0) cmbPerson.SelectedIndex = 0;
@@ -1572,10 +1667,13 @@ public class WeaponEditDialog : Form
         else if (rbPerson.Checked && cmbPerson.SelectedItem is Person p)
             personId = p.PersonId;
 
+        var lastUsedDate = DateOnly.FromDateTime(dtpLastUsedDate.Value.Date);
+
         if (_existing != null)
         {
             _existing.WeaponType = txtType.Text.Trim();
             _existing.WeaponNumber = txtNumber.Text.Trim();
+            _existing.LastUsedDate = lastUsedDate;
             _existing.StoredInLocationId = locationId;
             _existing.AssignedToPersonId = personId;
             ResultWeapon = _existing;
@@ -1586,6 +1684,7 @@ public class WeaponEditDialog : Form
             {
                 WeaponType = txtType.Text.Trim(),
                 WeaponNumber = txtNumber.Text.Trim(),
+                LastUsedDate = lastUsedDate,
                 StoredInLocationId = locationId,
                 AssignedToPersonId = personId
             };

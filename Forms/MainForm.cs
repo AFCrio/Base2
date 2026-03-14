@@ -16,7 +16,7 @@ namespace Base2.Forms
         public MainForm()
         {
             InitializeComponent();
-            _context = new AppDbContext();
+            _context = AppServices.DbContext;
 
             LoadTemplates();
         }
@@ -358,7 +358,6 @@ namespace Base2.Forms
 
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
-            _context.Dispose();
             base.OnFormClosed(e);
         }
     }

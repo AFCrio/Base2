@@ -32,8 +32,7 @@ public class AppDbContext : DbContext
 
     public static void EnsureDatabaseUpToDate()
     {
-        using var db = new AppDbContext();
-        db.Database.Migrate();
+        AppServices.DbContext.Database.Migrate();
     }
 
     /// <summary>
@@ -50,9 +49,9 @@ public class AppDbContext : DbContext
         optionsBuilder.UseSqlite($"Data Source={dbPath}");
 
 #if DEBUG
-        optionsBuilder.LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, LogLevel.Information, DbContextLoggerOptions.DefaultWithLocalTime | DbContextLoggerOptions.SingleLine); // ✅ Все SQL-запросы
-       optionsBuilder.EnableSensitiveDataLogging(); // ✅ Показывать параметры запросов
-       optionsBuilder.EnableDetailedErrors();       // ✅ Подробные ошибки
+        optionsBuilder.LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, LogLevel.Information, DbContextLoggerOptions.DefaultWithLocalTime | DbContextLoggerOptions.SingleLine); // ✅ Все SQL-запроси
+       optionsBuilder.EnableSensitiveDataLogging(); // ✅ Показывать параметри запитів
+       optionsBuilder.EnableDetailedErrors();       // ✅ Подробні помилки
 #endif
 
 
@@ -92,6 +91,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.PositionName)
                 .IsRequired()
                 .HasMaxLength(500);
+
+            entity.HasIndex(e => e.PositionName)
+                .IsUnique();
         });
 
         // =====================================================
@@ -140,6 +142,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.WeaponNumber)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.LastUsedDate)
+                .IsRequired()
+                .HasDefaultValue(new DateOnly(2026, 1, 1));
 
             // FK до Location
             entity.HasOne(e => e.StoredInLocation)
@@ -192,6 +197,9 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.Address)
                 .HasMaxLength(500);
+
+            entity.HasIndex(e => e.LocationName)
+                .IsUnique();
         });
 
         // =====================================================
@@ -327,7 +335,7 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Parent)
                 .WithMany(p => p.Children)
                 .HasForeignKey(e => e.ParentDutySectionNodeId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Cascade);
 
             // FK до DutyTemplate (для вузлів шаблону)
             entity.HasOne(e => e.DutyTemplate)

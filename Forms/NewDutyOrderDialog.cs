@@ -15,7 +15,7 @@ namespace Base2.Forms
         public NewDutyOrderDialog(AppDbContext? context = null)
         {
             InitializeComponent();
-            _context = context ?? new AppDbContext();
+            _context = context ?? AppServices.DbContext;
             LoadLocations();
             LoadTemplates();
         }

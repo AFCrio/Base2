@@ -28,7 +28,7 @@ namespace Base2.Forms
         public OrderCreatorForm(int templateId)
         {
             InitializeComponent();
-            _context = new AppDbContext();
+            _context = AppServices.DbContext;
             _template = _context.DutyTemplates.Find(templateId);
         }
 
@@ -38,7 +38,7 @@ namespace Base2.Forms
         public OrderCreatorForm(DutyOrder existingOrder)
         {
             InitializeComponent();
-            _context = new AppDbContext();
+            _context = AppServices.DbContext;
             _order = _context.DutyOrders
                 .Include(o => o.SourceTemplate)
                 .Include(o => o.TimeRanges)
@@ -666,7 +666,7 @@ namespace Base2.Forms
 
         protected override void OnFormClosing(FormClosingEventArgs e)
         {
-            _context?.Dispose();
+            _context.ChangeTracker.Clear();
             base.OnFormClosing(e);
         }
     }

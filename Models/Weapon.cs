@@ -18,6 +18,11 @@ public class Weapon
     public string WeaponNumber { get; set; } = string.Empty;
 
     /// <summary>
+    /// Остання дата використання
+    /// </summary>
+    public DateOnly LastUsedDate { get; set; } = new(2026, 1, 1);
+
+    /// <summary>
     /// Де зберігається (опціонально)
     /// </summary>
     public int? StoredInLocationId { get; set; }
