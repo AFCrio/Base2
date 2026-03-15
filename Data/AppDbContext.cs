@@ -19,6 +19,8 @@ public class AppDbContext : DbContext
     public DbSet<Weapon> Weapons { get; set; } = null!;
     public DbSet<Vehicle> Vehicles { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;
+    public DbSet<WeaponAmmoPreset> WeaponAmmoPresets { get; set; } = null!;
+    public DbSet<AppSetting> AppSettings { get; set; } = null!;
 
     // Робочі сутності
     public DbSet<DutyOrder> DutyOrders { get; set; } = null!;
@@ -49,7 +51,7 @@ public class AppDbContext : DbContext
         optionsBuilder.UseSqlite($"Data Source={dbPath}");
 
 #if DEBUG
-        optionsBuilder.LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, LogLevel.Information, DbContextLoggerOptions.DefaultWithLocalTime | DbContextLoggerOptions.SingleLine); // ✅ Все SQL-запроси
+        optionsBuilder.LogTo(Console.WriteLine, new[] { DbLoggerCategory.Database.Command.Name }, LogLevel.Information, DbContextLoggerOptions.DefaultWithLocalTime | DbContextLoggerOptions.SingleLine); // ✅ Все SQL-запиті
        optionsBuilder.EnableSensitiveDataLogging(); // ✅ Показывать параметри запитів
        optionsBuilder.EnableDetailedErrors();       // ✅ Подробні помилки
 #endif
@@ -126,6 +128,60 @@ public class AppDbContext : DbContext
                 .OnDelete(DeleteBehavior.Restrict);
 
             entity.HasIndex(e => e.LastName);
+        });
+
+        // =====================================================
+        // APP SETTINGS
+        // =====================================================
+        modelBuilder.Entity<AppSetting>(entity =>
+        {
+            entity.HasKey(e => e.Key);
+
+            entity.Property(e => e.Key)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Value)
+                .HasMaxLength(500);
+        });
+
+        // =====================================================
+        // WEAPON AMMO PRESET
+        // =====================================================
+        modelBuilder.Entity<WeaponAmmoPreset>(entity =>
+        {
+            entity.HasKey(e => e.WeaponAmmoPresetId);
+
+            entity.Property(e => e.WeaponType)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.AmmoType)
+                .IsRequired()
+                .HasMaxLength(50);
+
+            entity.Property(e => e.AmmoCount)
+                .IsRequired();
+
+            entity.HasIndex(e => e.WeaponType)
+                .IsUnique();
+
+            entity.HasData(
+                new WeaponAmmoPreset
+                {
+                    WeaponAmmoPresetId = 1,
+                    WeaponType = "ПМ",
+                    AmmoType = "9 мм",
+                    AmmoCount = 16
+                },
+                new WeaponAmmoPreset
+                {
+                    WeaponAmmoPresetId = 2,
+                    WeaponType = "АК-47",
+                    AmmoType = "5,45 мм",
+                    AmmoCount = 120
+                }
+            );
         });
 
         // =====================================================

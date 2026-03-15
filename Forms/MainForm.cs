@@ -356,6 +356,14 @@ namespace Base2.Forms
             _context.ChangeTracker.Clear();
         }
 
+        private void btnSettings_Click(object sender, EventArgs e)
+        {
+            using var form = new SettingsForm(_context);
+            form.ShowDialog(this);
+
+            _context.ChangeTracker.Clear();
+        }
+
         protected override void OnFormClosed(FormClosedEventArgs e)
         {
             base.OnFormClosed(e);

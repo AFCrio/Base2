@@ -153,7 +153,8 @@ public partial class AssignmentForm
             AutoSize = true,
             Checked = true
         };
-        rbOtherWeapon.CheckedChanged += (_, _) => cmbOtherWeapon.Enabled = rbOtherWeapon.Checked;
+        rbAssignedWeapon.CheckedChanged += RbAssignedWeapon_CheckedChanged;
+        rbOtherWeapon.CheckedChanged += RbOtherWeapon_CheckedChanged;
 
         cmbOtherWeapon = new ComboBox
         {
@@ -161,6 +162,7 @@ public partial class AssignmentForm
             Width = w - 190,
             DropDownStyle = ComboBoxStyle.DropDownList
         };
+        cmbOtherWeapon.SelectedIndexChanged += CmbOtherWeapon_SelectedIndexChanged;
 
         grpWeapon.Controls.AddRange([rbAssignedWeapon, rbOtherWeapon, cmbOtherWeapon]);
         Controls.Add(grpWeapon);
@@ -183,16 +185,15 @@ public partial class AssignmentForm
             DropDownStyle = ComboBoxStyle.DropDownList
         };
         cmbAmmoType.Items.AddRange(["5,45 мм", "7,62 мм", "9 мм", "5,56 мм"]);
-        cmbAmmoType.SelectedIndex = 0;
 
         var lblAmmoCount = new Label { Text = "Кількість:", Location = new Point(200, 25), AutoSize = true };
         numAmmoCount = new NumericUpDown
         {
             Location = new Point(290, 22),
             Width = 80,
-            Minimum = 1,
+            Minimum = 0,
             Maximum = 9999,
-            Value = 120
+            Value = 0
         };
 
         grpAmmo.Controls.AddRange([lblAmmoType, cmbAmmoType, lblAmmoCount, numAmmoCount]);

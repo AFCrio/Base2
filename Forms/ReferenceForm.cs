@@ -18,6 +18,7 @@ public class ReferenceForm : Form
     private AppDbContext _context = null!;
     private TabControl tabControl = null!;
     private readonly int _initialTabIndex;
+    private readonly bool _clearTrackerOnClose;
 
     // ── Локації ──
     private DataGridView dgvLocations = null!;
@@ -31,6 +32,10 @@ public class ReferenceForm : Form
     private DataGridView dgvWeapons = null!;
     private TextBox txtWeaponFilter = null!;
 
+    // ── Підстановки набоїв ──
+    private DataGridView dgvWeaponAmmoPresets = null!;
+    private TextBox txtWeaponAmmoPresetFilter = null!;
+
     // ── Транспорт ──
     private DataGridView dgvVehicles = null!;
     private TextBox txtVehicleFilter = null!;
@@ -43,10 +48,11 @@ public class ReferenceForm : Form
     private DataGridView dgvPositions = null!;
     private TextBox txtPositionFilter = null!;
 
-    public ReferenceForm(int initialTabIndex = 0)
+    public ReferenceForm(int initialTabIndex = 0, bool clearTrackerOnClose = true)
     {
         _context = AppServices.DbContext;
         _initialTabIndex = initialTabIndex;
+        _clearTrackerOnClose = clearTrackerOnClose;
         BuildUI();
         LoadAll();
 
@@ -75,6 +81,7 @@ public class ReferenceForm : Form
         tabControl.TabPages.Add(BuildLocationsTab());
         tabControl.TabPages.Add(BuildPeopleTab());
         tabControl.TabPages.Add(BuildWeaponsTab());
+        tabControl.TabPages.Add(BuildWeaponAmmoPresetsTab());
         tabControl.TabPages.Add(BuildVehiclesTab());
         tabControl.TabPages.Add(BuildRanksTab());
         tabControl.TabPages.Add(BuildPositionsTab());
@@ -224,6 +231,28 @@ public class ReferenceForm : Form
         return tab;
     }
 
+    // ─────────── Підстановки набоїв ───────────
+
+    private TabPage BuildWeaponAmmoPresetsTab()
+    {
+        var tab = new TabPage("🎯 Підстановки набоїв");
+
+        var (toolbar, filter, grid) = BuildTabContent(
+            "Фільтр за типом зброї / набоїв…",
+            (_, _) => AddWeaponAmmoPreset(),
+            (_, _) => EditWeaponAmmoPreset(),
+            (_, _) => DeleteWeaponAmmoPreset(),
+            (_, _) => LoadWeaponAmmoPresets());
+
+        txtWeaponAmmoPresetFilter = filter;
+        dgvWeaponAmmoPresets = grid;
+        dgvWeaponAmmoPresets.CellDoubleClick += (_, _) => EditWeaponAmmoPreset();
+
+        tab.Controls.Add(grid);
+        tab.Controls.Add(toolbar);
+        return tab;
+    }
+
     // ─────────── Транспорт ───────────
 
     private TabPage BuildVehiclesTab()
@@ -256,6 +285,7 @@ public class ReferenceForm : Form
         LoadLocations();
         LoadPeople();
         LoadWeapons();
+        LoadWeaponAmmoPresets();
         LoadVehicles();
         LoadRanks();
         LoadPositions();
@@ -268,7 +298,10 @@ public class ReferenceForm : Form
         var query = _context.Locations.AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(l => l.LocationName.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(l => l.LocationName.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvLocations.DataSource = query
             .OrderBy(l => l.LocationName)
@@ -296,7 +329,10 @@ public class ReferenceForm : Form
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(p => p.LastName.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(p => p.LastName.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvPeople.DataSource = query
             .OrderBy(p => p.LastName)
@@ -327,7 +363,10 @@ public class ReferenceForm : Form
             .AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(w => w.WeaponNumber.Contains(filter) || w.WeaponType.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(w => w.WeaponNumber.ToUpper().Contains(normalizedFilter) || w.WeaponType.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvWeapons.DataSource = query
             .OrderBy(w => w.WeaponType)
@@ -349,6 +388,34 @@ public class ReferenceForm : Form
             dgvWeapons.Columns["WeaponId"].Visible = false;
     }
 
+    private void LoadWeaponAmmoPresets()
+    {
+        _context.ChangeTracker.Clear();
+        var filter = txtWeaponAmmoPresetFilter?.Text?.Trim() ?? "";
+        var query = _context.WeaponAmmoPresets.AsQueryable();
+
+        if (!string.IsNullOrEmpty(filter))
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(p => p.WeaponType.ToUpper().Contains(normalizedFilter)
+                                  || p.AmmoType.ToUpper().Contains(normalizedFilter));
+        }
+
+        dgvWeaponAmmoPresets.DataSource = query
+            .OrderBy(p => p.WeaponType)
+            .Select(p => new
+            {
+                p.WeaponAmmoPresetId,
+                ТипЗброї = p.WeaponType,
+                ТипНабоїв = p.AmmoType,
+                Кількість = p.AmmoCount
+            })
+            .ToList();
+
+        if (dgvWeaponAmmoPresets.Columns.Contains("WeaponAmmoPresetId"))
+            dgvWeaponAmmoPresets.Columns["WeaponAmmoPresetId"].Visible = false;
+    }
+
     private void LoadVehicles()
     {
         _context.ChangeTracker.Clear();
@@ -356,7 +423,10 @@ public class ReferenceForm : Form
         var query = _context.Vehicles.AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(v => v.VehicleNumber.Contains(filter) || v.VehicleName.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(v => v.VehicleNumber.ToUpper().Contains(normalizedFilter) || v.VehicleName.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvVehicles.DataSource = query
             .OrderBy(v => v.VehicleName)
@@ -535,6 +605,22 @@ public class ReferenceForm : Form
         using var dlg = new WeaponEditDialog(_context);
         if (dlg.ShowDialog() != DialogResult.OK || dlg.ResultWeapon == null) return;
 
+        var weaponNumber = dlg.ResultWeapon.WeaponNumber.Trim();
+        var numberExists = _context.Weapons
+            .Any(w => w.WeaponNumber.ToUpper() == weaponNumber.ToUpper());
+
+        if (numberExists)
+        {
+            MessageBox.Show(
+                $"Зброя з номером «{weaponNumber}» вже існує.",
+                "Дублювання номера",
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Warning);
+            return;
+        }
+
+        dlg.ResultWeapon.WeaponNumber = weaponNumber;
+
         _context.Weapons.Add(dlg.ResultWeapon);
         _context.SaveChanges();
         LoadWeapons();
@@ -600,6 +686,97 @@ public class ReferenceForm : Form
             _context.Weapons.Remove(weapon);
             SaveWithCatch();
             LoadWeapons();
+        }
+    }
+
+    // ═══════════════════════════════════════════════════
+    //  AMMO PRESETS CRUD
+    // ═══════════════════════════════════════════════════
+
+    private void AddWeaponAmmoPreset()
+    {
+        using var dlg = new EditDialog("Нова підстановка",
+            [("Тип зброї", ""), ("Тип набоїв", ""), ("Кількість", "0")]);
+
+        if (dlg.ShowDialog() != DialogResult.OK) return;
+
+        var weaponType = dlg.Values[0].Trim();
+        var ammoType = dlg.Values[1].Trim();
+        if (!int.TryParse(dlg.Values[2].Trim(), out var ammoCount) || ammoCount < 0) ammoCount = 0;
+
+        if (string.IsNullOrWhiteSpace(weaponType) || string.IsNullOrWhiteSpace(ammoType))
+        {
+            MessageBox.Show("Заповніть тип зброї та тип набоїв.", "Увага", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var exists = _context.WeaponAmmoPresets.Any(p => p.WeaponType.ToUpper() == weaponType.ToUpper());
+        if (exists)
+        {
+            MessageBox.Show($"Підстановка для типу «{weaponType}» вже існує.", "Дублювання", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        _context.WeaponAmmoPresets.Add(new WeaponAmmoPreset
+        {
+            WeaponType = weaponType,
+            AmmoType = ammoType,
+            AmmoCount = ammoCount
+        });
+
+        _context.SaveChanges();
+        LoadWeaponAmmoPresets();
+    }
+
+    private void EditWeaponAmmoPreset()
+    {
+        if (GetSelectedId(dgvWeaponAmmoPresets, "WeaponAmmoPresetId") is not int id) return;
+
+        var preset = _context.WeaponAmmoPresets.Find(id);
+        if (preset == null) return;
+
+        using var dlg = new EditDialog("Редагування підстановки",
+            [("Тип зброї", preset.WeaponType), ("Тип набоїв", preset.AmmoType), ("Кількість", preset.AmmoCount.ToString())]);
+
+        if (dlg.ShowDialog() != DialogResult.OK) return;
+
+        var weaponType = dlg.Values[0].Trim();
+        var ammoType = dlg.Values[1].Trim();
+        if (!int.TryParse(dlg.Values[2].Trim(), out var ammoCount) || ammoCount < 0) ammoCount = 0;
+
+        if (string.IsNullOrWhiteSpace(weaponType) || string.IsNullOrWhiteSpace(ammoType))
+        {
+            MessageBox.Show("Заповніть тип зброї та тип набоїв.", "Увага", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        var exists = _context.WeaponAmmoPresets.Any(p => p.WeaponAmmoPresetId != id && p.WeaponType.ToUpper() == weaponType.ToUpper());
+        if (exists)
+        {
+            MessageBox.Show($"Підстановка для типу «{weaponType}» вже існує.", "Дублювання", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            return;
+        }
+
+        preset.WeaponType = weaponType;
+        preset.AmmoType = ammoType;
+        preset.AmmoCount = ammoCount;
+
+        _context.SaveChanges();
+        LoadWeaponAmmoPresets();
+    }
+
+    private void DeleteWeaponAmmoPreset()
+    {
+        if (GetSelectedId(dgvWeaponAmmoPresets, "WeaponAmmoPresetId") is not int id) return;
+
+        var preset = _context.WeaponAmmoPresets.Find(id);
+        if (preset == null) return;
+
+        if (Confirm($"Видалити підстановку для «{preset.WeaponType}»?"))
+        {
+            _context.WeaponAmmoPresets.Remove(preset);
+            SaveWithCatch();
+            LoadWeaponAmmoPresets();
         }
     }
 
@@ -712,7 +889,10 @@ public class ReferenceForm : Form
         var query = _context.Ranks.AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(r => r.RankName.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(r => r.RankName.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvRanks.DataSource = query
             .OrderBy(r => r.RankLevel)
@@ -822,7 +1002,10 @@ public class ReferenceForm : Form
         var query = _context.Positions.AsQueryable();
 
         if (!string.IsNullOrEmpty(filter))
-            query = query.Where(p => p.PositionName.Contains(filter));
+        {
+            var normalizedFilter = filter.ToUpper();
+            query = query.Where(p => p.PositionName.ToUpper().Contains(normalizedFilter));
+        }
 
         dgvPositions.DataSource = query
             .OrderBy(p => p.PositionName)
@@ -937,7 +1120,9 @@ public class ReferenceForm : Form
 
     protected override void OnFormClosed(FormClosedEventArgs e)
     {
-        _context.ChangeTracker.Clear();
+        if (_clearTrackerOnClose)
+            _context.ChangeTracker.Clear();
+
         base.OnFormClosed(e);
     }
 }
@@ -1084,7 +1269,8 @@ public class PersonEditDialog : Form
         Controls.Add(btnRanks);
 
         ReloadRanks();
-        if (_existing != null) cmbRank.SelectedValue = _existing.RankId;
+        if (_existing != null)
+            cmbRank.SelectedValue = _existing.RankId;
 
         AddLabel("Посада:", ref y);
         cmbPosition = AddComboBox(ref y, w - 42);
@@ -1098,7 +1284,10 @@ public class PersonEditDialog : Form
         Controls.Add(btnPositions);
 
         ReloadPositions();
-        if (_existing != null) cmbPosition.SelectedValue = _existing.PositionId;
+        if (_existing != null)
+            cmbPosition.SelectedValue = _existing.PositionId;
+        else
+            ApplyDefaultPersonSettings();
 
         y += 6;
 
@@ -1281,11 +1470,41 @@ public class PersonEditDialog : Form
 
     private void OpenReferenceTabAndReload(int tabIndex, Action reloadAction)
     {
-        using var refs = new ReferenceForm(tabIndex);
+        using var refs = new ReferenceForm(tabIndex, clearTrackerOnClose: false);
         refs.ShowDialog(this);
 
         _context.ChangeTracker.Clear();
         reloadAction();
+    }
+
+    private void ApplyDefaultPersonSettings()
+    {
+        var defaultRankId = GetSettingInt("PersonDefaults.RankId");
+        if (defaultRankId.HasValue)
+        {
+            var rankExists = _context.Ranks.Any(r => r.RankId == defaultRankId.Value);
+            if (rankExists)
+                cmbRank.SelectedValue = defaultRankId.Value;
+        }
+
+        var defaultPositionId = GetSettingInt("PersonDefaults.PositionId");
+        if (defaultPositionId.HasValue)
+        {
+            var positionExists = _context.Positions.Any(p => p.PositionId == defaultPositionId.Value);
+            if (positionExists)
+                cmbPosition.SelectedValue = defaultPositionId.Value;
+        }
+    }
+
+    private int? GetSettingInt(string key)
+    {
+        var value = _context.AppSettings
+            .AsNoTracking()
+            .Where(s => s.Key == key)
+            .Select(s => s.Value)
+            .FirstOrDefault();
+
+        return int.TryParse(value, out var parsed) ? parsed : null;
     }
 
     private void AutoFillInitials()
@@ -1531,7 +1750,6 @@ public class WeaponEditDialog : Form
         Controls.Add(dtpLastUsedDate);
         y += 34;
 
-        // ── Призначення ──
         var grpAssign = new GroupBox
         {
             Text = "Призначення (локація або особа)",
@@ -1572,32 +1790,48 @@ public class WeaponEditDialog : Form
         cmbPerson = new ComboBox
         {
             Location = new Point(140, 76),
-            Width = w - 160,
+            Width = w - 246,
             DropDownStyle = ComboBoxStyle.DropDownList,
             Enabled = false
         };
 
-        rbLocation.CheckedChanged += (_, _) => cmbLocation.Enabled = rbLocation.Checked;
-        rbPerson.CheckedChanged += (_, _) => cmbPerson.Enabled = rbPerson.Checked;
+        var btnEditPeople = new Button
+        {
+            Text = "📋",
+            Location = new Point(140 + (w - 246) + 4, 74),
+            Size = new Size(34, 26),
+            Enabled = false
+        };
+        btnEditPeople.Click += (_, _) => OpenPeopleReference();
 
-        grpAssign.Controls.AddRange([rbNone, rbLocation, cmbLocation, rbPerson, cmbPerson]);
+        var btnAddPerson = new Button
+        {
+            Text = "➕",
+            Location = new Point(140 + (w - 246) + 42, 74),
+            Size = new Size(34, 26),
+            Enabled = false
+        };
+        btnAddPerson.Click += (_, _) => AddPersonFromWeaponDialog();
+
+        rbLocation.CheckedChanged += (_, _) => cmbLocation.Enabled = rbLocation.Checked;
+        rbPerson.CheckedChanged += (_, _) =>
+        {
+            var enabled = rbPerson.Checked;
+            cmbPerson.Enabled = enabled;
+            btnEditPeople.Enabled = enabled;
+            btnAddPerson.Enabled = enabled;
+        };
+
+        grpAssign.Controls.AddRange([rbNone, rbLocation, cmbLocation, rbPerson, cmbPerson, btnEditPeople, btnAddPerson]);
         Controls.Add(grpAssign);
         y += grpAssign.Height + 10;
 
-        // Заповнюємо локації
         var locations = _context.Locations.OrderBy(l => l.LocationName).ToList();
         foreach (var loc in locations)
             cmbLocation.Items.Add(loc);
         cmbLocation.DisplayMember = "LocationName";
         if (cmbLocation.Items.Count > 0) cmbLocation.SelectedIndex = 0;
 
-        // Заповнюємо осіб
-        var people = _context.People
-            .Include(p => p.Rank)
-            .OrderBy(p => p.LastName)
-            .ToList();
-        foreach (var p in people)
-            cmbPerson.Items.Add(p);
         cmbPerson.DisplayMember = "LastName";
         cmbPerson.Format += (_, args) =>
         {
@@ -1616,9 +1850,8 @@ public class WeaponEditDialog : Form
             }
         };
         cmbPerson.FormattingEnabled = true;
-        if (cmbPerson.Items.Count > 0) cmbPerson.SelectedIndex = 0;
+        ReloadPeopleCombo(_existing?.AssignedToPersonId);
 
-        // Встановити поточне значення
         if (_existing?.StoredInLocationId != null)
         {
             rbLocation.Checked = true;
@@ -1628,11 +1861,8 @@ public class WeaponEditDialog : Form
         else if (_existing?.AssignedToPersonId != null)
         {
             rbPerson.Checked = true;
-            var current = people.FirstOrDefault(p => p.PersonId == _existing.AssignedToPersonId);
-            if (current != null) cmbPerson.SelectedItem = current;
         }
 
-        // ── Кнопки ──
         var btnOk = new Button { Text = "OK", Location = new Point(270, y), Size = new Size(80, 32) };
         btnOk.Click += BtnOk_Click;
 
@@ -1650,6 +1880,57 @@ public class WeaponEditDialog : Form
         ClientSize = new Size(w + 30, y + 45);
     }
 
+    private void ReloadPeopleCombo(int? selectedPersonId = null)
+    {
+        var people = _context.People
+            .Include(p => p.Rank)
+            .OrderBy(p => p.LastName)
+            .ToList();
+
+        cmbPerson.Items.Clear();
+        foreach (var p in people)
+            cmbPerson.Items.Add(p);
+
+        if (people.Count == 0) return;
+
+        if (selectedPersonId.HasValue)
+        {
+            var selected = people.FirstOrDefault(p => p.PersonId == selectedPersonId.Value);
+            if (selected != null)
+            {
+                cmbPerson.SelectedItem = selected;
+                return;
+            }
+        }
+
+        cmbPerson.SelectedIndex = 0;
+    }
+
+    private void OpenPeopleReference()
+    {
+        var selectedId = (cmbPerson.SelectedItem as Person)?.PersonId;
+
+        using var refs = new ReferenceForm(1, clearTrackerOnClose: false);
+        refs.ShowDialog(this);
+
+        ReloadPeopleCombo(selectedId);
+    }
+
+    private void AddPersonFromWeaponDialog()
+    {
+        using var dlg = new PersonEditDialog(_context);
+        if (dlg.ShowDialog() != DialogResult.OK || dlg.ResultPerson == null) return;
+
+        _context.People.Add(dlg.ResultPerson);
+        _context.SaveChanges();
+
+        dlg.LinkWeaponToNewPerson(dlg.ResultPerson.PersonId);
+        _context.SaveChanges();
+
+        ReloadPeopleCombo(dlg.ResultPerson.PersonId);
+        rbPerson.Checked = true;
+    }
+
     private void BtnOk_Click(object? sender, EventArgs e)
     {
         if (string.IsNullOrWhiteSpace(txtType.Text) || string.IsNullOrWhiteSpace(txtNumber.Text))
@@ -1658,7 +1939,6 @@ public class WeaponEditDialog : Form
             return;
         }
 
-        // Взаємовиключні: або локація, або особа, або нічого
         int? locationId = null;
         int? personId = null;
 

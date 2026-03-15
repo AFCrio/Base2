@@ -39,14 +39,15 @@ namespace Base2.Forms
             btnNewTemplate = new Button();
             btnDeleteTemplate = new Button();
             btnReferences = new Button();
+            btnSettings = new Button();
             panelOrders = new Panel();
             labelOrders = new Label();
             btnNewOrder = new Button();
             btnEditOrder = new Button();
             btnDeleteOrder = new Button();
             btnRefresh = new Button();
-            dataGridViewOrders = new DataGridView();
             labelOutdated = new Label();
+            dataGridViewOrders = new DataGridView();
             panelTemplate.SuspendLayout();
             panelOrders.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)dataGridViewOrders).BeginInit();
@@ -62,11 +63,12 @@ namespace Base2.Forms
             panelTemplate.Controls.Add(btnNewTemplate);
             panelTemplate.Controls.Add(btnDeleteTemplate);
             panelTemplate.Controls.Add(btnReferences);
+            panelTemplate.Controls.Add(btnSettings);
             panelTemplate.Dock = DockStyle.Top;
             panelTemplate.Location = new Point(0, 0);
             panelTemplate.Name = "panelTemplate";
             panelTemplate.Padding = new Padding(12, 8, 12, 8);
-            panelTemplate.Size = new Size(1200, 60);
+            panelTemplate.Size = new Size(1288, 60);
             panelTemplate.TabIndex = 0;
             // 
             // labelTemplate
@@ -76,7 +78,7 @@ namespace Base2.Forms
             labelTemplate.ForeColor = Color.DarkSlateBlue;
             labelTemplate.Location = new Point(12, 18);
             labelTemplate.Name = "labelTemplate";
-            labelTemplate.Size = new Size(72, 19);
+            labelTemplate.Size = new Size(70, 19);
             labelTemplate.TabIndex = 0;
             labelTemplate.Text = "Шаблон:";
             // 
@@ -94,11 +96,11 @@ namespace Base2.Forms
             // 
             btnEditTemplate.BackColor = Color.LightBlue;
             btnEditTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnEditTemplate.Location = new Point(510, 13);
+            btnEditTemplate.Location = new Point(585, 11);
             btnEditTemplate.Name = "btnEditTemplate";
-            btnEditTemplate.Size = new Size(170, 32);
+            btnEditTemplate.Size = new Size(104, 32);
             btnEditTemplate.TabIndex = 2;
-            btnEditTemplate.Text = "✏️ Редагувати шаблон";
+            btnEditTemplate.Text = "✏️ Редагувати";
             btnEditTemplate.UseVisualStyleBackColor = false;
             btnEditTemplate.Click += btnEditTemplate_Click;
             // 
@@ -106,11 +108,11 @@ namespace Base2.Forms
             // 
             btnNewTemplate.BackColor = Color.LightGreen;
             btnNewTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnNewTemplate.Location = new Point(690, 13);
+            btnNewTemplate.Location = new Point(496, 11);
             btnNewTemplate.Name = "btnNewTemplate";
-            btnNewTemplate.Size = new Size(150, 32);
+            btnNewTemplate.Size = new Size(83, 32);
             btnNewTemplate.TabIndex = 3;
-            btnNewTemplate.Text = "➕ Новий шаблон";
+            btnNewTemplate.Text = "➕ Новий";
             btnNewTemplate.UseVisualStyleBackColor = false;
             btnNewTemplate.Click += btnNewTemplate_Click;
             // 
@@ -118,11 +120,11 @@ namespace Base2.Forms
             // 
             btnDeleteTemplate.BackColor = Color.MistyRose;
             btnDeleteTemplate.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnDeleteTemplate.Location = new Point(850, 13);
+            btnDeleteTemplate.Location = new Point(695, 11);
             btnDeleteTemplate.Name = "btnDeleteTemplate";
-            btnDeleteTemplate.Size = new Size(160, 32);
+            btnDeleteTemplate.Size = new Size(98, 32);
             btnDeleteTemplate.TabIndex = 4;
-            btnDeleteTemplate.Text = "🗑️ Видалити шаблон";
+            btnDeleteTemplate.Text = "🗑️ Видалити";
             btnDeleteTemplate.UseVisualStyleBackColor = false;
             btnDeleteTemplate.Click += btnDeleteTemplate_Click;
             // 
@@ -130,13 +132,25 @@ namespace Base2.Forms
             // 
             btnReferences.BackColor = Color.Lavender;
             btnReferences.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
-            btnReferences.Location = new Point(1020, 13);
+            btnReferences.Location = new Point(999, 13);
             btnReferences.Name = "btnReferences";
-            btnReferences.Size = new Size(160, 32);
+            btnReferences.Size = new Size(130, 32);
             btnReferences.TabIndex = 5;
             btnReferences.Text = "📖 Довідники";
             btnReferences.UseVisualStyleBackColor = false;
             btnReferences.Click += btnReferences_Click;
+            // 
+            // btnSettings
+            // 
+            btnSettings.BackColor = Color.Gainsboro;
+            btnSettings.Font = new Font("Segoe UI", 9F, FontStyle.Bold);
+            btnSettings.Location = new Point(1135, 13);
+            btnSettings.Name = "btnSettings";
+            btnSettings.Size = new Size(140, 32);
+            btnSettings.TabIndex = 6;
+            btnSettings.Text = "⚙️ Налаштування";
+            btnSettings.UseVisualStyleBackColor = false;
+            btnSettings.Click += btnSettings_Click;
             // 
             // panelOrders
             // 
@@ -149,7 +163,7 @@ namespace Base2.Forms
             panelOrders.Dock = DockStyle.Top;
             panelOrders.Location = new Point(0, 60);
             panelOrders.Name = "panelOrders";
-            panelOrders.Size = new Size(1200, 50);
+            panelOrders.Size = new Size(1288, 50);
             panelOrders.TabIndex = 1;
             // 
             // labelOrders
@@ -159,7 +173,7 @@ namespace Base2.Forms
             labelOrders.ForeColor = Color.DarkBlue;
             labelOrders.Location = new Point(12, 14);
             labelOrders.Name = "labelOrders";
-            labelOrders.Size = new Size(66, 19);
+            labelOrders.Size = new Size(64, 19);
             labelOrders.TabIndex = 0;
             labelOrders.Text = "Накази:";
             // 
@@ -236,16 +250,16 @@ namespace Base2.Forms
             dataGridViewOrders.ReadOnly = true;
             dataGridViewOrders.RowHeadersVisible = false;
             dataGridViewOrders.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dataGridViewOrders.Size = new Size(1176, 485);
+            dataGridViewOrders.Size = new Size(1264, 485);
             dataGridViewOrders.TabIndex = 2;
-            dataGridViewOrders.SelectionChanged += dataGridViewOrders_SelectionChanged;
             dataGridViewOrders.CellDoubleClick += dataGridViewOrders_CellDoubleClick;
+            dataGridViewOrders.SelectionChanged += dataGridViewOrders_SelectionChanged;
             // 
             // MainForm
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
-            ClientSize = new Size(1200, 650);
+            ClientSize = new Size(1288, 650);
             Controls.Add(dataGridViewOrders);
             Controls.Add(panelOrders);
             Controls.Add(panelTemplate);
@@ -269,6 +283,8 @@ namespace Base2.Forms
         private System.Windows.Forms.Button btnEditTemplate;
         private System.Windows.Forms.Button btnNewTemplate;
         private System.Windows.Forms.Button btnDeleteTemplate;
+        private System.Windows.Forms.Button btnReferences;
+        private System.Windows.Forms.Button btnSettings;
         private System.Windows.Forms.Panel panelOrders;
         private System.Windows.Forms.Label labelOrders;
         private System.Windows.Forms.Button btnNewOrder;
@@ -277,6 +293,5 @@ namespace Base2.Forms
         private System.Windows.Forms.Button btnRefresh;
         private System.Windows.Forms.Label labelOutdated;
         private System.Windows.Forms.DataGridView dataGridViewOrders;
-        private System.Windows.Forms.Button btnReferences;
     }
 }

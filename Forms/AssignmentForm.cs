@@ -354,6 +354,8 @@ public partial class AssignmentForm : Form
             rbAssignedWeapon.Enabled = true;
             rbAssignedWeapon.Checked = true;
             cmbOtherWeapon.Enabled = false;
+
+            TryApplyAmmoPresetByWeaponType(assignedWeapon.WeaponType);
         }
         else
         {
@@ -362,7 +364,92 @@ public partial class AssignmentForm : Form
             rbAssignedWeapon.Enabled = false;
             rbOtherWeapon.Checked = true;
             cmbOtherWeapon.Enabled = true;
+
+            if (cmbOtherWeapon.SelectedValue is int otherWeaponId)
+                TryApplyAmmoPresetByWeaponId(otherWeaponId);
+            else
+                ClearAmmoFields();
         }
+    }
+
+    private void RbAssignedWeapon_CheckedChanged(object? sender, EventArgs e)
+    {
+        if (!_node.HasAmmo || !rbAssignedWeapon.Checked) return;
+
+        if (rbAssignedWeapon.Tag is int weaponId)
+            TryApplyAmmoPresetByWeaponId(weaponId);
+        else
+            ClearAmmoFields();
+    }
+
+    private void RbOtherWeapon_CheckedChanged(object? sender, EventArgs e)
+    {
+        cmbOtherWeapon.Enabled = rbOtherWeapon.Checked;
+
+        if (!_node.HasAmmo || !rbOtherWeapon.Checked) return;
+
+        if (cmbOtherWeapon.SelectedValue is int weaponId)
+            TryApplyAmmoPresetByWeaponId(weaponId);
+        else
+            ClearAmmoFields();
+    }
+
+    private void CmbOtherWeapon_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (!_node.HasAmmo || !rbOtherWeapon.Checked) return;
+
+        if (cmbOtherWeapon.SelectedValue is int weaponId)
+            TryApplyAmmoPresetByWeaponId(weaponId);
+        else
+            ClearAmmoFields();
+    }
+
+    private void TryApplyAmmoPresetByWeaponId(int weaponId)
+    {
+        var weaponType = _context.Weapons
+            .Where(w => w.WeaponId == weaponId)
+            .Select(w => w.WeaponType)
+            .FirstOrDefault();
+
+        if (string.IsNullOrWhiteSpace(weaponType))
+        {
+            ClearAmmoFields();
+            return;
+        }
+
+        TryApplyAmmoPresetByWeaponType(weaponType);
+    }
+
+    private void TryApplyAmmoPresetByWeaponType(string weaponType)
+    {
+        if (!_node.HasAmmo) return;
+
+        var normalizedWeaponType = weaponType.Trim().ToUpper();
+        var preset = _context.WeaponAmmoPresets
+            .AsNoTracking()
+            .FirstOrDefault(p => p.WeaponType.ToUpper() == normalizedWeaponType);
+
+        if (preset == null)
+        {
+            ClearAmmoFields();
+            return;
+        }
+
+        if (!cmbAmmoType.Items.Contains(preset.AmmoType))
+            cmbAmmoType.Items.Add(preset.AmmoType);
+
+        cmbAmmoType.SelectedItem = preset.AmmoType;
+
+        var value = Math.Clamp(preset.AmmoCount, (int)numAmmoCount.Minimum, (int)numAmmoCount.Maximum);
+        numAmmoCount.Value = value;
+    }
+
+    private void ClearAmmoFields()
+    {
+        if (!_node.HasAmmo) return;
+
+        cmbAmmoType.SelectedIndex = -1;
+        numAmmoCount.Value = numAmmoCount.Minimum;
     }
 
     // ═══════════════════════════════════════════════════
