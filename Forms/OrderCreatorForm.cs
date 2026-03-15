@@ -437,6 +437,25 @@ namespace Base2.Forms
             }
         }
 
+        private void treeView1_NodeMouseDoubleClick(object sender, TreeNodeMouseClickEventArgs e)
+        {
+            if (e.Node?.Tag is not DutySectionNode section) return;
+
+            treeView1.SelectedNode = e.Node;
+            _selectedNode = section;
+
+            btnAddAssignment_Click(sender, EventArgs.Empty);
+        }
+
+        private void treeView1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode != Keys.Enter) return;
+
+            btnAddAssignment_Click(sender, EventArgs.Empty);
+            e.Handled = true;
+            e.SuppressKeyPress = true;
+        }
+
         private void ShowNodeInfo(DutySectionNode section)
         {
             lblNodeTitle.Text = !string.IsNullOrEmpty(section.Title)

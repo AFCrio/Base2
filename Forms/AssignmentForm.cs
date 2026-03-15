@@ -84,6 +84,16 @@ public partial class AssignmentForm : Form
         LoadPersons();
     }
 
+    protected override void OnShown(EventArgs e)
+    {
+        base.OnShown(e);
+        BeginInvoke(() =>
+        {
+            txtSearch.Focus();
+            txtSearch.SelectAll();
+        });
+    }
+
     /// <summary>
     /// Шукає LocationId вгору по дереву (від вузла до батьківського SectionHeader).
     /// </summary>
@@ -324,13 +334,8 @@ public partial class AssignmentForm : Form
         // Налаштувати секцію зброї
         ConfigureWeaponForPerson();
 
-        // Фокус на наступне поле
-        if (_node.HasWeapon)
-            grpWeapon.Focus();
-        else if (_node.HasVehicle)
-            cmbVehicle.Focus();
-        else
-            btnOk.Focus();
+        // Після вибору особи фокус одразу на кнопку підтвердження
+        btnOk.Focus();
     }
 
     private void ConfigureWeaponForPerson()

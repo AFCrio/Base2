@@ -344,6 +344,8 @@ namespace Base2.Forms
             treeView1.Size = new Size(800, 610);
             treeView1.TabIndex = 0;
             treeView1.AfterSelect += treeView1_AfterSelect;
+            treeView1.NodeMouseDoubleClick += treeView1_NodeMouseDoubleClick;
+            treeView1.KeyDown += treeView1_KeyDown;
             // 
             // splitRight
             // 
