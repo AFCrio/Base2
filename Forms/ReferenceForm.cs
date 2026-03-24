@@ -295,12 +295,13 @@ public class ReferenceForm : Form
     {
         _context.ChangeTracker.Clear();
         var filter = txtLocationFilter?.Text?.Trim() ?? "";
-        var query = _context.Locations.AsQueryable();
+        var query = _context.Locations
+            .Include(l => l.StoredWeapons)
+            .AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(l => l.LocationName.ToUpper().Contains(normalizedFilter));
+            query = query.Where(l => l.LocationName.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvLocations.DataSource = query
@@ -326,12 +327,11 @@ public class ReferenceForm : Form
             .Include(p => p.Rank)
             .Include(p => p.Position)
             .Include(p => p.AssignedWeapons)
-            .AsQueryable();
+            .AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(p => p.LastName.ToUpper().Contains(normalizedFilter));
+            query = query.Where(p => p.LastName.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvPeople.DataSource = query
@@ -360,12 +360,13 @@ public class ReferenceForm : Form
         var query = _context.Weapons
             .Include(w => w.StoredInLocation)
             .Include(w => w.AssignedToPerson)
-            .AsQueryable();
+            .AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(w => w.WeaponNumber.ToUpper().Contains(normalizedFilter) || w.WeaponType.ToUpper().Contains(normalizedFilter));
+            query = query.Where(w =>
+                w.WeaponNumber.Contains(filter, StringComparison.CurrentCultureIgnoreCase)
+                || w.WeaponType.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvWeapons.DataSource = query
@@ -392,13 +393,13 @@ public class ReferenceForm : Form
     {
         _context.ChangeTracker.Clear();
         var filter = txtWeaponAmmoPresetFilter?.Text?.Trim() ?? "";
-        var query = _context.WeaponAmmoPresets.AsQueryable();
+        var query = _context.WeaponAmmoPresets.AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(p => p.WeaponType.ToUpper().Contains(normalizedFilter)
-                                  || p.AmmoType.ToUpper().Contains(normalizedFilter));
+            query = query.Where(p =>
+                p.WeaponType.Contains(filter, StringComparison.CurrentCultureIgnoreCase)
+                || p.AmmoType.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvWeaponAmmoPresets.DataSource = query
@@ -420,12 +421,13 @@ public class ReferenceForm : Form
     {
         _context.ChangeTracker.Clear();
         var filter = txtVehicleFilter?.Text?.Trim() ?? "";
-        var query = _context.Vehicles.AsQueryable();
+        var query = _context.Vehicles.AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(v => v.VehicleNumber.ToUpper().Contains(normalizedFilter) || v.VehicleName.ToUpper().Contains(normalizedFilter));
+            query = query.Where(v =>
+                v.VehicleNumber.Contains(filter, StringComparison.CurrentCultureIgnoreCase)
+                || v.VehicleName.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvVehicles.DataSource = query
@@ -886,12 +888,13 @@ public class ReferenceForm : Form
     {
         _context.ChangeTracker.Clear();
         var filter = txtRankFilter?.Text?.Trim() ?? "";
-        var query = _context.Ranks.AsQueryable();
+        var query = _context.Ranks
+            .Include(r => r.People)
+            .AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(r => r.RankName.ToUpper().Contains(normalizedFilter));
+            query = query.Where(r => r.RankName.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvRanks.DataSource = query
@@ -999,12 +1002,13 @@ public class ReferenceForm : Form
     {
         _context.ChangeTracker.Clear();
         var filter = txtPositionFilter?.Text?.Trim() ?? "";
-        var query = _context.Positions.AsQueryable();
+        var query = _context.Positions
+            .Include(p => p.People)
+            .AsEnumerable();
 
         if (!string.IsNullOrEmpty(filter))
         {
-            var normalizedFilter = filter.ToUpper();
-            query = query.Where(p => p.PositionName.ToUpper().Contains(normalizedFilter));
+            query = query.Where(p => p.PositionName.Contains(filter, StringComparison.CurrentCultureIgnoreCase));
         }
 
         dgvPositions.DataSource = query
