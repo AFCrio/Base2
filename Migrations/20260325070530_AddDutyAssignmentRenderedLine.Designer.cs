@@ -3,6 +3,7 @@ using System;
 using Base2.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Base2.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260325070530_AddDutyAssignmentRenderedLine")]
+    partial class AddDutyAssignmentRenderedLine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "10.0.3");
@@ -134,14 +137,6 @@ namespace Base2.Migrations
 
                     b.Property<int?>("DutyTimeRangeId")
                         .HasColumnType("INTEGER");
-
-                    b.Property<string>("GroupHeaderTemplate")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
-
-                    b.Property<string>("GroupItemTemplate")
-                        .HasMaxLength(500)
-                        .HasColumnType("TEXT");
 
                     b.Property<bool>("HasAmmo")
                         .HasColumnType("INTEGER");

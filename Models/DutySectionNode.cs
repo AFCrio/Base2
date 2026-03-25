@@ -42,6 +42,11 @@ public class DutySectionNode
     /// </summary>
     public string? DutyPositionTitle { get; set; }
 
+    /// <summary>
+    /// Шаблон рядка одного учасника групи (для GroupInline / GroupNested).
+    /// </summary>
+    public string? GroupItemTemplate { get; set; }
+
     // ── Прапорці ролі (визначають UI та рендеринг) ──
 
     /// <summary>

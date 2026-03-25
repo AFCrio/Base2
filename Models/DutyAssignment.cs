@@ -24,6 +24,12 @@ public class DutyAssignment
     /// </summary>
     public string? AmmoType { get; set; }
 
+    /// <summary>
+    /// Зафіксований рендер рядка призначення на момент збереження.
+    /// Використовується для стабільного тексту наказу при змінах довідників.
+    /// </summary>
+    public string RenderedLine { get; set; } = string.Empty;
+
     // Навігація
     public DutySectionNode DutySectionNode { get; set; } = null!;
     public Person Person { get; set; } = null!;

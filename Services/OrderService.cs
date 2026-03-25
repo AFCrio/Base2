@@ -70,6 +70,7 @@ public class OrderService
                 NodeType = templateNode.NodeType,
                 OrderIndex = templateNode.OrderIndex,
                 DutyPositionTitle = templateNode.DutyPositionTitle,
+                GroupItemTemplate = templateNode.GroupItemTemplate,
                 HasWeapon = templateNode.HasWeapon,
                 HasAmmo = templateNode.HasAmmo,
                 HasVehicle = templateNode.HasVehicle,

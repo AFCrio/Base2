@@ -23,12 +23,14 @@ public partial class TemplateEditorForm : Form
 
     // ── Контроли панелі (створюються динамічно) ──
     private TextBox? _txtTitle;
+    private TextBox? _txtGroupItem;
     private CheckBox? _chkWeapon;
     private CheckBox? _chkAmmo;
     private CheckBox? _chkVehicle;
     private NumericUpDown? _nudMax;
     private TextBox? _txtTimeLabel;
     private Label? _lblNodeType;
+    private TextBox? _lastPlaceholderTarget;
 
     public TemplateEditorForm()
     {
@@ -214,6 +216,8 @@ public partial class TemplateEditorForm : Form
         _chkVehicle = null;
         _nudMax = null;
         _txtTimeLabel = null;
+        _txtGroupItem = null;
+        _lastPlaceholderTarget = null;
 
         int y = 0;
 
@@ -226,6 +230,7 @@ public partial class TemplateEditorForm : Form
         _txtTitle = AddTextBox(node.DutyPositionTitle ?? "", ref y, multiline: IsMultilineTitle(node.NodeType));
         _txtTitle.Tag = node;
         _txtTitle.Leave += TxtTitle_Leave;
+        _lastPlaceholderTarget = _txtTitle;
         y += 8;
 
         // ── Специфічні поля за типом ──
@@ -258,6 +263,11 @@ public partial class TemplateEditorForm : Form
             case NodeType.FireGroupInline:
                 AddSeparator(ref y);
                 AddLabel("Параметри групи", ref y, bold: true);
+                AddLabel("Шаблон рядка учасника групи:", ref y);
+                _txtGroupItem = AddTextBox(node.GroupItemTemplate ?? "", ref y);
+                _txtGroupItem.Tag = node;
+                _txtGroupItem.Leave += TxtGroupItem_Leave;
+
                 _chkWeapon = AddCheckBox("Зброя", node.HasWeapon, ref y);
                 _chkAmmo = AddCheckBox("Набої", node.HasAmmo, ref y);
                 _chkWeapon.CheckedChanged += Flag_Changed;
@@ -387,12 +397,13 @@ public partial class TemplateEditorForm : Form
     {
         if (sender is not LinkLabel link) return;
         if (link.Tag is not string placeholder) return;
-        if (_txtTitle == null) return;
+        if (_txtTitle == null && _lastPlaceholderTarget == null) return;
 
-        var pos = _txtTitle.SelectionStart;
-        _txtTitle.Text = _txtTitle.Text.Insert(pos, placeholder);
-        _txtTitle.SelectionStart = pos + placeholder.Length;
-        _txtTitle.Focus();
+        var target = _lastPlaceholderTarget ?? _txtTitle!;
+        var pos = target.SelectionStart;
+        target.Text = target.Text.Insert(pos, placeholder);
+        target.SelectionStart = pos + placeholder.Length;
+        target.Focus();
     }
 
     /// <summary>
@@ -504,6 +515,7 @@ public partial class TemplateEditorForm : Form
             Height = multiline ? 60 : 27,
             ScrollBars = multiline ? ScrollBars.Vertical : ScrollBars.None
         };
+        txt.Enter += (_, _) => _lastPlaceholderTarget = txt;
         panelRight.Controls.Add(txt);
         y += txt.Height + 6;
         return txt;
@@ -607,6 +619,16 @@ public partial class TemplateEditorForm : Form
 
         _selectedNode.TimeRangeLabel = _txtTimeLabel.Text;
         SaveQuiet();
+    }
+
+    private void TxtGroupItem_Leave(object? sender, EventArgs e)
+    {
+        if (_selectedNode == null || _txtGroupItem == null) return;
+        if (_selectedNode.GroupItemTemplate == _txtGroupItem.Text) return;
+
+        _selectedNode.GroupItemTemplate = _txtGroupItem.Text;
+        SaveQuiet();
+        RefreshSelectedTreeNode();
     }
 
     private void Flag_Changed(object? sender, EventArgs e)
@@ -718,6 +740,7 @@ public partial class TemplateEditorForm : Form
             DutyTemplateId = _template.DutyTemplateId,
             OrderIndex = maxOrder + 1,
             DutyPositionTitle = GetDefaultTitle(dlg.SelectedNodeType),
+            GroupItemTemplate = IsGroupType(dlg.SelectedNodeType) ? "{Rank} {LastName} {Initials}" : null,
             HasVehicle = dlg.SelectedNodeType == NodeType.DriverPosition,
             MaxAssignments = IsGroupType(dlg.SelectedNodeType) ? 0 : 1
         };
@@ -749,6 +772,7 @@ public partial class TemplateEditorForm : Form
             DutyTemplateId = _selectedNode.DutyTemplateId,
             OrderIndex = maxOrder + 1,
             DutyPositionTitle = GetDefaultTitle(dlg.SelectedNodeType),
+            GroupItemTemplate = IsGroupType(dlg.SelectedNodeType) ? "{Rank} {LastName} {Initials}" : null,
             HasVehicle = dlg.SelectedNodeType == NodeType.DriverPosition,
             MaxAssignments = IsGroupType(dlg.SelectedNodeType) ? 0 : 1
         };
@@ -771,6 +795,7 @@ public partial class TemplateEditorForm : Form
             DutyTemplateId = _selectedNode.DutyTemplateId,
             OrderIndex = _selectedNode.OrderIndex + 1,
             DutyPositionTitle = GetDefaultTitle(dlg.SelectedNodeType),
+            GroupItemTemplate = IsGroupType(dlg.SelectedNodeType) ? "{Rank} {LastName} {Initials}" : null,
             HasVehicle = dlg.SelectedNodeType == NodeType.DriverPosition,
             MaxAssignments = IsGroupType(dlg.SelectedNodeType) ? 0 : 1
         };

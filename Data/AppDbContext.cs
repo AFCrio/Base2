@@ -372,6 +372,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DutyPositionTitle)
                 .HasMaxLength(500);
 
+            entity.Property(e => e.GroupItemTemplate)
+                .HasMaxLength(500);
+
             entity.Property(e => e.HasWeapon)
                 .IsRequired();
 
@@ -435,6 +438,10 @@ public class AppDbContext : DbContext
 
             entity.Property(e => e.AmmoType)
                 .HasMaxLength(50);
+
+            entity.Property(e => e.RenderedLine)
+                .IsRequired()
+                .HasMaxLength(2000);
 
             // FK до DutySectionNode
             entity.HasOne(e => e.DutySectionNode)

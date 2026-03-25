@@ -189,6 +189,9 @@ public static class TemplateRenderer
 
         // Звичайний рендеринг (SimplePosition, DriverPosition тощо)
         var firstAssignment = section.Assignments.FirstOrDefault();
+        if (firstAssignment != null && !string.IsNullOrWhiteSpace(firstAssignment.RenderedLine))
+            return firstAssignment.RenderedLine;
+
         return Render(
             section.DutyPositionTitle,
             assignment: firstAssignment,
@@ -203,6 +206,19 @@ public static class TemplateRenderer
     /// </summary>
     public static string FormatAssignmentInline(DutyAssignment assignment, DutySectionNode section)
     {
+        if (!string.IsNullOrWhiteSpace(assignment.RenderedLine))
+            return assignment.RenderedLine;
+
+        if (!string.IsNullOrWhiteSpace(section.GroupItemTemplate))
+        {
+            return Render(
+                section.GroupItemTemplate,
+                assignment: assignment,
+                timeRange: section.DutyTimeRange,
+                order: null,
+                node: section);
+        }
+
         var person = assignment.Person;
         var text = $"{person.Rank?.RankName} {person.LastName} {person.Initials}";
 

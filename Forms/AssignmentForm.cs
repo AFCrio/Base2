@@ -1,5 +1,6 @@
 using Base2.Data;
 using Base2.Models;
+using Base2.Services;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -563,17 +564,43 @@ public partial class AssignmentForm : Form
         }
 
         // Створюємо результат
-        Result = new DutyAssignment
+        var weapon = weaponId.HasValue ? _context.Weapons.Find(weaponId.Value) : null;
+        var vehicle = vehicleId.HasValue ? _context.Vehicles.Find(vehicleId.Value) : null;
+
+        var assignment = new DutyAssignment
         {
             DutySectionNodeId = _node.DutySectionNodeId,
             PersonId = _selectedPerson.PersonId,
             WeaponId = weaponId,
             VehicleId = vehicleId,
             AmmoType = _node.HasAmmo ? cmbAmmoType.SelectedItem?.ToString() : null,
-            AmmoCount = _node.HasAmmo ? (int)numAmmoCount.Value : null
+            AmmoCount = _node.HasAmmo ? (int)numAmmoCount.Value : null,
+            Person = _selectedPerson,
+            Weapon = weapon,
+            Vehicle = vehicle,
+            DutySectionNode = _node
         };
+
+        assignment.RenderedLine = BuildRenderedLine(assignment);
+        Result = assignment;
 
         DialogResult = DialogResult.OK;
         Close();
+    }
+
+    private string BuildRenderedLine(DutyAssignment assignment)
+    {
+        if (_node.NodeType is NodeType.GroupInline or NodeType.GroupNested)
+            return TemplateRenderer.FormatAssignmentInline(assignment, _node);
+
+        if (string.IsNullOrWhiteSpace(_node.DutyPositionTitle))
+            return TemplateRenderer.FormatAssignmentInline(assignment, _node);
+
+        return TemplateRenderer.Render(
+            _node.DutyPositionTitle,
+            assignment,
+            _node.DutyTimeRange,
+            _order,
+            _node);
     }
 }

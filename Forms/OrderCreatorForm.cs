@@ -514,7 +514,9 @@ namespace Base2.Forms
             var assignments = section.Assignments.Select(a => new
             {
                 a.DutyAssignmentId,
-                ПІБ = $"{a.Person.Rank?.RankName} {a.Person.LastName} {a.Person.Initials}",
+                ПІБ = !string.IsNullOrWhiteSpace(a.RenderedLine)
+                    ? a.RenderedLine
+                    : $"{a.Person.Rank?.RankName} {a.Person.LastName} {a.Person.Initials}",
                 Посада = a.Person.Position?.PositionName ?? "",
                 Зброя = section.HasWeapon && a.Weapon != null
                     ? $"{a.Weapon.WeaponType} №{a.Weapon.WeaponNumber}"
