@@ -287,3 +287,42 @@
 │  13 міграцій                                                  │
 └───────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## 🔗 Стратегії зовнішніх ключів
+
+| Зв'язок | ON DELETE | Обґрунтування |
+|---------|-----------|---------------|
+| `DutyAssignment → Person` | RESTRICT | Не можна видалити особу, що перебуває в наряді |
+| `DutyAssignment → Weapon` | SET NULL | Зброю можна переприсвоїти без втрати наряду |
+| `DutyAssignment → Vehicle` | SET NULL | Транспорт можна переприсвоїти без втрати наряду |
+| `DutySectionNode → DutyTemplate` | CASCADE | Видалення шаблону видаляє всю структуру |
+| `DutySectionNode → DutyOrder` | CASCADE | Видалення наряду видаляє всі вузли |
+| `DutySectionNode → Location` | SET NULL | Локацію можна відв'язати без видалення вузла |
+| `DutySectionNode → DutyTimeRange` | SET NULL | Зміна може бути відв'язана від позиції |
+| `DutyOrder → DutyTemplate` | RESTRICT | Не можна видалити шаблон, якщо є накази |
+| `TemplateChangeLog → DutyTemplate` | CASCADE | Журнал видаляється разом із шаблоном |
+| `Person → Rank / Position` | RESTRICT | Не можна видалити звання/посаду у використанні |
+| `Weapon → Location` | SET NULL | Локацію зберігання можна відв'язати |
+| `Weapon → Person` | SET NULL | Зброю можна відкріпити від особи |
+
+---
+
+## 📅 Хронологія міграцій
+
+| Міграція | Орієнтовна дата | Зміни |
+|----------|-----------------|-------|
+| `InitialCreate` | 2026-02-18 | Базова схема (Person, Rank, Position, Weapon, Vehicle, DutyTemplate, DutySectionNode, DutyOrder, DutyAssignment) |
+| `ref3` | 2026-02-20 | Коригування довідників |
+| `AddVersioningAndChangeLog` | 2026-02-24 | `DutyTemplate.Version`, `TemplateChangeLog` |
+| `AddLocationToSectionNode` | 2026-02-26 | `DutySectionNode.LocationId` (фільтрація зброї за постом) |
+| `AddWeaponAssignedToPerson` | 2026-02-26 | `Weapon.AssignedToPersonId` |
+| `RemoveTemplateNode` | 2026-02-27 | Консолідація вузлів у `DutySectionNode` |
+| `AddUniqueIndexesAndCascadeDelete` | 2026-02-27 | Унікальні індекси та каскадні видалення |
+| `AddWeaponLastUsedDate` | 2026-03-04 | `Weapon.LastUsedDate` |
+| `AddWeaponAmmoPresetsTable` | 2026-03-15 | `WeaponAmmoPreset` + seed-дані |
+| `AddAppSettingsTable` | 2026-03-15 | `AppSetting` (Key/Value) |
+| `AddDutyAssignmentRenderedLine` | 2026-03-25 | `DutyAssignment.RenderedLine` (текстовий знімок) |
+| `AddGroupTemplatesToDutySectionNode` | 2026-03-25 | `DutySectionNode.GroupItemTemplate` |
+| `RemoveGroupHeaderTemplateFromDutySectionNode` | 2026-03-25 | Видалено `GroupHeaderTemplate` |
